@@ -1,0 +1,6 @@
+version: "3.8"
+
+services:
+  echo-chat:
+    image: cassandra:latest
+    container_name: cass_cluster
