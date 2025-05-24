@@ -4,7 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { z, ZodError } from "zod/v4";
 
 export const validateBody =
-  (schema: z.ZodAny) =>
+  (schema: z.ZodType) =>
   async (req: Request, _: Response, next: NextFunction) => {
     try {
       const value = await schema.parseAsync(req.body);

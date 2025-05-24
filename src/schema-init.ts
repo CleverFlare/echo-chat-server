@@ -1,10 +1,7 @@
-import dotenv from "dotenv";
-dotenv.config();
-
+import { env } from "@/env";
 import { client, clientWithoutKeyspace } from "./shared/database";
 import * as path from "path";
 import glob from "fast-glob";
-import { env } from "@/env";
 import { logger } from "./shared/logger";
 
 const { KEYSPACE } = env;

@@ -1,6 +1,3 @@
-import dotenv from "dotenv";
-dotenv.config();
-
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import express, { NextFunction, Request, Response } from "express";
@@ -20,7 +17,6 @@ const PORT = 3000;
 runDatabase();
 
 app.use(express.static("public"));
-app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(helmet());
@@ -43,6 +39,7 @@ app.use((_, res, next) => {
 });
 
 app.use(loggerMiddleware);
+app.use(cookieParser());
 app.get("/", (_: Request, res: Response) => {
   res.send("Hello, TypeScript with Express!");
 });

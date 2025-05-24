@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 export type ENV = {
   DATABASE_URL: string;
   DATA_CENTER: string;
