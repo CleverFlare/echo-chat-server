@@ -48,8 +48,6 @@ export async function register({
     data: {
       id: data.id as string,
       username: data.username as string,
-      firstName: data.firstName as string,
-      lastName: data.lastName as string,
     },
   })
     .setExpirationTime("7d")

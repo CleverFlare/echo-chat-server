@@ -1,6 +1,6 @@
 export function sanitizeObject<
   T extends Record<string, unknown>,
-  B extends string[],
+  B extends (keyof T)[],
 >(object: T, ...propertiesToRemove: B): Omit<T, B[number]> {
   const sanitizedObject = { ...object };
 

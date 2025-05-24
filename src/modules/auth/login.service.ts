@@ -36,9 +36,8 @@ export async function login({ username, password }: LoginType) {
   // Create the JWT
   const token = await new SignJWT({
     data: {
-      id: user.user_id as string,
+      id: user.id as string,
       username: user.username as string,
-      name: user.name as string,
     },
   })
     .setExpirationTime("7d")

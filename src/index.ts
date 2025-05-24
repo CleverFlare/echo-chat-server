@@ -40,6 +40,21 @@ app.use((_, res, next) => {
 
 app.use(loggerMiddleware);
 app.use(cookieParser());
+
+declare module "express" {
+  interface Request {
+    token?: string;
+  }
+}
+
+app.use((req: Request, _, next) => {
+  const token = req.cookies?.OutSiteJWT;
+
+  req.token = token;
+
+  return next();
+});
+
 app.get("/", (_: Request, res: Response) => {
   res.send("Hello, TypeScript with Express!");
 });

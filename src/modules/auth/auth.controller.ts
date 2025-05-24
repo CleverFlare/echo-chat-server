@@ -65,7 +65,7 @@ authRouter.post(
 
 authRouter.get(
   "/logout",
-  asyncHandler(async (req: Request, res: Response) => {
+  asyncHandler(async (_: Request, res: Response) => {
     res
       .cookie("OutSiteJWT", null, {
         maxAge: -1,
