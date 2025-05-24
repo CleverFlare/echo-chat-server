@@ -9,7 +9,5 @@ export async function getUserById<T>(userId: string) {
 
   if (userRecord.rows.length <= 0) return null;
 
-  console.log("USER", userRecord.rows[0]);
-
   return userRecord.rows[0] as T;
 }

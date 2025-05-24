@@ -15,8 +15,6 @@ export async function getProfile(token: string) {
     new TextEncoder().encode(env.JWT_PRIVATE),
   );
 
-  console.log("ID", id);
-
   const user = await getUserById<{
     id: string;
     first_name: string;

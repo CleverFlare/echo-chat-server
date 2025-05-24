@@ -1,6 +1,6 @@
 import { client } from "@/shared/database";
 
-export async function getUserByUsername(username: string) {
+export async function getUserByUsername<T>(username: string) {
   const userByUsernameRecord = await client.execute(
     "SELECT * FROM user_by_username WHERE username=?",
     [username],
@@ -17,7 +17,7 @@ export async function getUserByUsername(username: string) {
     { prepare: true },
   );
 
-  return userByIdRecord.rows[0];
+  return userByIdRecord.rows[0] as T;
 }
 
 type InsertUserType = {

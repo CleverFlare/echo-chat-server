@@ -1,0 +1,99 @@
+import { AppError } from "@/shared/app-error";
+import { getUserByUsername } from "../auth/auth.repository";
+import { insertContact } from "./contacts.repository";
+import { StatusCodes } from "http-status-codes";
+import { getUserById } from "../profile/profile.repository";
+
+export async function addContact(username: string, userId: string) {
+  const user = await getUserByUsername<{
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    password_hash: string;
+    username: string;
+    avatar_url: string;
+  }>(username);
+
+  const me = await getUserById<{
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    password_hash: string;
+    username: string;
+    avatar_url: string;
+  }>(userId);
+
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, "User was not found");
+  }
+
+  if (!me) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "Are you sure you're logged in properly?",
+    );
+  }
+
+  const contact = await insertContact<{
+    user_id: string;
+    contact_id: string;
+    first_name: string;
+    last_name: string;
+    username: string;
+    avatar_url: string;
+    chat_id: string;
+    unread: number;
+    last_message: {
+      id: string;
+      content: string;
+      timestamp: string;
+      sender_id: string;
+      status: string;
+    };
+  }>({
+    userId,
+    contactId: user.id,
+    avatarUrl: user.avatar_url,
+    username: user.username,
+    lastName: user.last_name,
+    firstName: user.first_name,
+  });
+
+  await insertContact<{
+    user_id: string;
+    contact_id: string;
+    first_name: string;
+    last_name: string;
+    username: string;
+    avatar_url: string;
+    chat_id: string;
+    unread: number;
+    last_message: {
+      id: string;
+      content: string;
+      timestamp: string;
+      sender_id: string;
+      status: string;
+    };
+  }>({
+    userId: contact.contact_id,
+    contactId: me.id,
+    avatarUrl: me.avatar_url,
+    username: me.username,
+    lastName: me.last_name,
+    firstName: me.first_name,
+  });
+
+  return {
+    id: contact.contact_id,
+    firstName: contact.first_name,
+    lastName: contact.last_name,
+    username: contact.username,
+    avatarUrl: contact.avatar_url,
+    chatId: contact.chat_id,
+    unread: contact.unread,
+    lastMessage: contact.last_message,
+  };
+}
