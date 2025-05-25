@@ -1,5 +1,6 @@
 import { AppError } from "@/shared/app-error";
 import { client } from "@/shared/database";
+import { logger } from "@/shared/logger";
 import { StatusCodes } from "http-status-codes";
 
 type InsertContactType = {
@@ -58,4 +59,52 @@ export async function findContacts<T>(userId: string) {
   );
 
   return contact.rows as T[];
+}
+
+type UpdateContactLastMessage = {
+  id: string;
+  content: string;
+  timestamp: string;
+  senderId: string;
+  status: string;
+  partyOneId: string;
+  partyTwoId: string;
+};
+
+export async function updateContactLastMessage({
+  id,
+  content,
+  timestamp,
+  senderId,
+  status,
+  partyOneId,
+  partyTwoId,
+}: UpdateContactLastMessage) {
+  if (!partyOneId) {
+    logger.error(
+      "updateContactLastMessage: received partyOneId as",
+      partyOneId,
+    );
+    return;
+  }
+
+  if (!partyTwoId) {
+    logger.error(
+      "updateContactLastMessage: received partyTwoId as",
+      partyTwoId,
+    );
+    return;
+  }
+
+  await client.execute(
+    "UPDATE echochat.user_contacts SET last_message={ id:?, content:?, timestamp:?, sender_id:?, status:? } WHERE user_id=? AND contact_id=?",
+    [id, content, timestamp, senderId, status, partyOneId, partyTwoId],
+    { prepare: true },
+  );
+
+  await client.execute(
+    "UPDATE echochat.user_contacts SET last_message={ id:?, content:?, timestamp:?, sender_id:?, status:? } WHERE user_id=? AND contact_id=?",
+    [id, content, timestamp, senderId, status, partyTwoId, partyOneId],
+    { prepare: true },
+  );
 }

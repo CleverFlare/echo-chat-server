@@ -26,7 +26,12 @@ export async function getContacts(userId: string) {
     username: contact.username,
     avatarUrl: contact.avatar_url,
     chatId: contact.chat_id,
-    lastMessage: contact.last_message,
+    lastMessage: contact?.last_message
+      ? {
+          ...contact.last_message,
+          senderId: contact.last_message.sender_id,
+        }
+      : undefined,
     unread: contact.unread,
   }));
 

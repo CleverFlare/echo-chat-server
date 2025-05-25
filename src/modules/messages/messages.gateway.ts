@@ -7,6 +7,7 @@ import {
 } from "./messages.repository";
 import { jwtVerify } from "jose";
 import { env } from "@/env";
+import { updateContactLastMessage } from "../contacts/contacts.repository";
 
 export async function setupMessagingSockets(socket: Socket) {
   if (!socket?.handshake?.headers?.authorization) {
@@ -14,7 +15,10 @@ export async function setupMessagingSockets(socket: Socket) {
     return;
   }
 
-  console.log("AUTHORIZATION", socket.handshake.headers.authorization);
+  console.log(
+    "HANDSHAKE AUTHORIZATION",
+    socket.handshake.headers.authorization,
+  );
 
   const {
     payload: {
@@ -30,11 +34,15 @@ export async function setupMessagingSockets(socket: Socket) {
   socket.on(
     "send-message",
     async (recipientId: string, message: InsertMessageType) => {
-      console.log("RECEIVED MESSAGE", message);
-
       if (!message?.chatId) return;
 
       const insertedMessage = await insertMessage(message);
+
+      await updateContactLastMessage({
+        ...message,
+        partyOneId: message.senderId,
+        partyTwoId: recipientId,
+      });
 
       const user = await findConnectedUserById<{
         user_id: string;
@@ -52,7 +60,6 @@ export async function setupMessagingSockets(socket: Socket) {
         senderId: insertedMessage.sender_id,
         timestamp: insertedMessage.timestamp,
       } as InsertMessageType);
-      console.log("SENDING", user.socket_id);
     },
   );
 }
