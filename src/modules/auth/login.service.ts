@@ -11,7 +11,11 @@ type LoginType = {
 };
 
 export async function login({ username, password }: LoginType) {
-  const user = await getUserByUsername(username);
+  const user = await getUserByUsername<{
+    id: string;
+    username: string;
+    password_hash: string;
+  }>(username);
 
   if (!user) {
     throw new AppError(
@@ -20,7 +24,7 @@ export async function login({ username, password }: LoginType) {
     );
   }
 
-  const isPasswordCorrect = await compare(password, user.get("password_hash"));
+  const isPasswordCorrect = await compare(password, user.password_hash);
 
   if (!isPasswordCorrect) {
     throw new AppError(

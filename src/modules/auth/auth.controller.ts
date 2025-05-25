@@ -13,25 +13,13 @@ const loginSchema = z.object({
   password: z.string().min(8),
 });
 
-const MAX_AGE = 60 * 60 * 24 * 7;
-
 authRouter.post(
   "/login",
   validateBody(loginSchema),
   asyncHandler(async (req: Request, res: Response) => {
     const token = await login(req.body);
 
-    res
-      .cookie("OutSiteJWT", token, {
-        httpOnly: false,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: MAX_AGE,
-        path: "/",
-        partitioned: true,
-      })
-      .status(StatusCodes.OK)
-      .json({ token });
+    res.status(StatusCodes.OK).json({ token });
   }),
 );
 
@@ -49,17 +37,7 @@ authRouter.post(
   asyncHandler(async (req: Request, res: Response) => {
     const token = await register(req.body);
 
-    res
-      .cookie("OutSiteJWT", token, {
-        httpOnly: false,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
-        maxAge: MAX_AGE,
-        path: "/",
-        partitioned: true,
-      })
-      .status(StatusCodes.CREATED)
-      .json({ token });
+    res.status(StatusCodes.CREATED).json({ token });
   }),
 );
 

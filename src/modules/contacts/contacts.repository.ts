@@ -9,10 +9,11 @@ type InsertContactType = {
   lastName: string;
   username: string;
   avatarUrl?: string | null;
+  chatId?: string | null;
 };
 
 export async function insertContact<T>(data: InsertContactType) {
-  const chatId = crypto.randomUUID();
+  const chatId = data?.chatId ?? crypto.randomUUID();
 
   const params = [
     data.userId,

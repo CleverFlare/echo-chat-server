@@ -4,6 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { jwtVerify } from "jose";
 import { env } from "@/env";
 import { JWTExpired, JWTInvalid } from "jose/errors";
+import { client } from "../database";
 
 export const verifyAuth =
   () =>
@@ -15,7 +16,23 @@ export const verifyAuth =
     }
 
     try {
-      await jwtVerify(req.token, new TextEncoder().encode(env.JWT_PRIVATE));
+      const {
+        payload: {
+          data: { id },
+        },
+      } = await jwtVerify<{ data: { id: string } }>(
+        req.token,
+        new TextEncoder().encode(env.JWT_PRIVATE),
+      );
+
+      const result = await client.execute(
+        "SELECT * FROM user_by_id WHERE id=?",
+        [id],
+        { prepare: true },
+      );
+
+      if (result.rows.length <= 0) throw new JWTInvalid();
+
       return next();
     } catch (err) {
       if (err instanceof JWTExpired) {

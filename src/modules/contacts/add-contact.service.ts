@@ -84,6 +84,7 @@ export async function addContact(username: string, userId: string) {
     username: me.username,
     lastName: me.last_name,
     firstName: me.first_name,
+    chatId: contact.chat_id,
   });
 
   return {

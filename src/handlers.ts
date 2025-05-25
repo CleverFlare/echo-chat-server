@@ -2,11 +2,22 @@ import { Router } from "express";
 import authRouter from "./modules/auth/auth.controller";
 import profileRouter from "./modules/profile/profile.controller";
 import contactsRouter from "./modules/contacts/contacts.controller";
+import messagesRouter from "./modules/messages/messages.controller";
+import { Socket, Server } from "socket.io";
+import { setupMessagingSockets } from "./modules/messages/messages.gateway";
 
-const handlers = Router();
+export type SocketHandler = (
+  socket: Socket,
+  io: Server,
+) => void | Promise<void>;
 
-handlers.use(authRouter);
-handlers.use(profileRouter);
-handlers.use(contactsRouter);
+const httpHandlers = Router();
 
-export default handlers;
+httpHandlers.use(authRouter);
+httpHandlers.use(profileRouter);
+httpHandlers.use(contactsRouter);
+httpHandlers.use(messagesRouter);
+
+const socketHandlers: SocketHandler[] = [setupMessagingSockets];
+
+export { httpHandlers, socketHandlers };

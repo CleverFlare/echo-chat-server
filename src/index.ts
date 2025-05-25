@@ -1,18 +1,25 @@
 import bodyParser from "body-parser";
-import cookieParser from "cookie-parser";
 import express, { NextFunction, Request, Response } from "express";
 import helmet from "helmet";
 import { AppError } from "./shared/app-error";
 import { StatusCodes } from "http-status-codes";
 import { logger, loggerMiddleware } from "@/shared/logger";
 import { errorHandler } from "./shared/error-handler";
-import handlers from "./handlers";
+import { httpHandlers, socketHandlers } from "./handlers";
 import { runDatabase } from "./shared/database";
-import { createServer } from "http";
-import { WebSocket } from "ws";
+// import { createServer as createHttpsServer } from "https";
+import { createServer as createHttpServer } from "http";
+import { initSocket } from "./shared/socket";
+import cors from "cors";
+// import { readFileSync } from "node:fs";
 
 export const app = express();
 const PORT = 3000;
+
+// const options = {
+//   key: readFileSync("key.pem"),
+//   cert: readFileSync("cert.pem"),
+// };
 
 runDatabase();
 
@@ -20,6 +27,7 @@ app.use(express.static("public"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(helmet());
+app.use(cors());
 app.use((_, res, next) => {
   const oldJson = res.json;
 
@@ -39,7 +47,6 @@ app.use((_, res, next) => {
 });
 
 app.use(loggerMiddleware);
-app.use(cookieParser());
 
 declare module "express" {
   interface Request {
@@ -48,9 +55,9 @@ declare module "express" {
 }
 
 app.use((req: Request, _, next) => {
-  const token = req.cookies?.OutSiteJWT;
+  const headerToken = req.headers.authorization?.split(" ")[1];
 
-  req.token = token;
+  req.token = headerToken;
 
   return next();
 });
@@ -59,7 +66,7 @@ app.get("/", (_: Request, res: Response) => {
   res.send("Hello, TypeScript with Express!");
 });
 
-app.use(handlers);
+app.use(httpHandlers);
 
 // 404 middleware
 app.all("*", (_: Request, __: Response, next) => {
@@ -68,22 +75,16 @@ app.all("*", (_: Request, __: Response, next) => {
   next(error);
 });
 
-const server = createServer(app);
+const server = createHttpServer(app);
 
-const wss = new WebSocket.Server({ server });
+const io = initSocket(server);
 
-// Handle WebSocket connections
-wss.on("connection", (ws) => {
-  console.log("New WebSocket connection");
-
-  ws.on("message", (message) => {
-    console.log(`Received: ${message}`);
-    ws.send(`Echo: ${message}`);
-  });
-
-  ws.on("close", () => {
-    console.log("WebSocket closed");
-  });
+// Register per-module socket handlers
+io.on("connection", async (socket) => {
+  for (const socketHandler of socketHandlers) {
+    if (socketHandler.name === "AsyncFunction") await socketHandler(socket, io);
+    else socketHandler(socket, io);
+  }
 });
 
 // eslint-disable-next-line
@@ -91,8 +92,10 @@ app.use((err: AppError, _: Request, res: Response, __: NextFunction) => {
   errorHandler(err, res);
 });
 
-server.listen(PORT, () => {
-  logger.info(`server is running on http://localhost:${PORT}`);
+server.listen(PORT, "0.0.0.0", () => {
+  logger.info(
+    `server is running on http://localhost:${PORT} - http://192.168.1.9:${PORT}`,
+  );
 });
 
 process.on("uncaughtException", (err) => {
