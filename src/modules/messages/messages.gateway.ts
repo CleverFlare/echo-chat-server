@@ -1,36 +1,9 @@
 import { Socket } from "socket.io";
-import {
-  findConnectedUserById,
-  insertConnectedUser,
-  insertMessage,
-  InsertMessageType,
-} from "./messages.repository";
-import { jwtVerify } from "jose";
-import { env } from "@/env";
 import { updateContactLastMessage } from "../contacts/contacts.repository";
+import { findConnectedUserByUserId } from "../auth/auth.repository";
+import { insertMessage, InsertMessageType } from "./messages.repository";
 
 export async function setupMessagingSockets(socket: Socket) {
-  if (!socket?.handshake?.headers?.authorization) {
-    socket.disconnect();
-    return;
-  }
-
-  console.log(
-    "HANDSHAKE AUTHORIZATION",
-    socket.handshake.headers.authorization,
-  );
-
-  const {
-    payload: {
-      data: { id },
-    },
-  } = await jwtVerify<{ data: { id: string } }>(
-    socket.handshake.headers.authorization,
-    new TextEncoder().encode(env.JWT_PRIVATE),
-  );
-
-  await insertConnectedUser({ userId: id, socketId: socket.id });
-
   socket.on(
     "send-message",
     async (recipientId: string, message: InsertMessageType) => {
@@ -44,7 +17,7 @@ export async function setupMessagingSockets(socket: Socket) {
         partyTwoId: recipientId,
       });
 
-      const user = await findConnectedUserById<{
+      const user = await findConnectedUserByUserId<{
         user_id: string;
         socket_id: string;
       }>(recipientId);

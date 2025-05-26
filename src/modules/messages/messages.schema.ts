@@ -20,10 +20,3 @@ CREATE TABLE message_by_chat_id (
   PRIMARY KEY ((chat_id), timestamp)
 )
 `;
-
-export const connectedUserId = `
-CREATE TABLE connected_user_id (
-  user_id text PRIMARY KEY,
-  socket_id text,
-)
-`;

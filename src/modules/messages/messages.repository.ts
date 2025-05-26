@@ -46,29 +46,3 @@ export async function insertMessage<T extends Message>({
 
   return data.rows[0] as unknown as T;
 }
-
-export async function insertConnectedUser({
-  userId,
-  socketId,
-}: {
-  userId: string;
-  socketId: string;
-}) {
-  await client.execute(
-    "INSERT INTO connected_user_id (user_id, socket_id) VALUES (?, ?)",
-    [userId, socketId],
-    {
-      prepare: true,
-    },
-  );
-}
-
-export async function findConnectedUserById<T>(userId: string) {
-  const result = await client.execute(
-    "SELECT * FROM connected_user_id WHERE user_id=?",
-    [userId],
-    { prepare: true },
-  );
-
-  return result.rows[0] as T;
-}

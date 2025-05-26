@@ -13,3 +13,17 @@ export const registerUser = `create table user_by_id (
   email TEXT,
   avatar_url TEXT
 )`;
+
+export const connectedByUserId = `
+CREATE TABLE connected_by_user_id (
+  user_id text PRIMARY KEY,
+  socket_id text,
+)
+`;
+
+export const connectedBySocketId = `
+CREATE TABLE connected_by_socket_id (
+  socket_id text PRIMARY KEY,
+  user_id text,
+)
+`;

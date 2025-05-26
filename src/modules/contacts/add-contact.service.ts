@@ -1,8 +1,12 @@
 import { AppError } from "@/shared/app-error";
-import { getUserByUsername } from "../auth/auth.repository";
+import {
+  findConnectedUserByUserId,
+  getUserByUsername,
+} from "../auth/auth.repository";
 import { insertContact } from "./contacts.repository";
 import { StatusCodes } from "http-status-codes";
 import { getUserById } from "../profile/profile.repository";
+import { io } from "@/shared/socket";
 
 export async function addContact(username: string, userId: string) {
   const user = await getUserByUsername<{
@@ -61,7 +65,7 @@ export async function addContact(username: string, userId: string) {
     firstName: user.first_name,
   });
 
-  await insertContact<{
+  const otherPartyContact = await insertContact<{
     user_id: string;
     contact_id: string;
     first_name: string;
@@ -86,6 +90,23 @@ export async function addContact(username: string, userId: string) {
     firstName: me.first_name,
     chatId: contact.chat_id,
   });
+
+  const connectedOtherParty = await findConnectedUserByUserId<
+    { socket_id: string; user_id: string } | undefined | null
+  >(contact.contact_id);
+
+  if (connectedOtherParty) {
+    io.to(connectedOtherParty.socket_id).emit("new-contact", {
+      id: otherPartyContact.contact_id,
+      firstName: otherPartyContact.first_name,
+      lastName: otherPartyContact.last_name,
+      username: otherPartyContact.username,
+      avatarUrl: otherPartyContact.avatar_url,
+      chatId: otherPartyContact.chat_id,
+      unread: otherPartyContact.unread,
+      lastMessage: otherPartyContact.last_message,
+    });
+  }
 
   return {
     id: contact.contact_id,

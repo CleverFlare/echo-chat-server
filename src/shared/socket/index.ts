@@ -2,7 +2,7 @@
 import { Server as IOServer } from "socket.io";
 import http from "http";
 
-let io: IOServer;
+export let io: IOServer;
 
 export const initSocket = (server: http.Server) => {
   io = new IOServer(server, {
