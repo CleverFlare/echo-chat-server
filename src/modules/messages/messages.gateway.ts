@@ -35,4 +35,27 @@ export async function setupMessagingSockets(socket: Socket) {
       } as InsertMessageType);
     },
   );
+
+  socket.on(
+    "is-typing",
+    async ({
+      receivingUserId,
+      isTyping,
+      senderId,
+    }: {
+      receivingUserId: string;
+      isTyping: boolean;
+      senderId: string;
+    }) => {
+      const user = await findConnectedUserByUserId<
+        { socket_id: string } | null | undefined
+      >(receivingUserId);
+
+      if (!user) return;
+
+      socket
+        .to(user.socket_id)
+        .emit("contact-is-typing", { id: senderId, isTyping });
+    },
+  );
 }
