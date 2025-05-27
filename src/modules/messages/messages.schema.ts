@@ -18,5 +18,5 @@ CREATE TABLE message_by_chat_id (
   status text,
   is_edited boolean,
   PRIMARY KEY ((chat_id), timestamp)
-)
+) WITH CLUSTERING ORDER BY (timestamp DESC)
 `;
