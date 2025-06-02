@@ -36,19 +36,29 @@ export async function insertUser({
   password,
 }: InsertUserType) {
   const uuid = crypto.randomUUID();
+  const currentTime = new Date().toISOString();
 
-  const userByIdParams = [uuid, firstName, lastName, email, username, password];
+  const userByIdParams = [
+    uuid,
+    firstName,
+    lastName,
+    email,
+    username,
+    password,
+    currentTime,
+    "Hey, there! I'm using Echo Chat.",
+  ];
 
   await client.execute(
-    "INSERT INTO user_by_id (id, first_name, last_name, email, username, password_hash) VALUES (?, ?, ?, ?, ?, ?)",
+    "INSERT INTO user_by_id (id, first_name, last_name, email, username, password_hash, created_at, bio) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     userByIdParams,
     { prepare: true },
   );
 
-  const userByUsernameParams = [username, password, uuid];
+  const userByUsernameParams = [username, password, uuid, currentTime];
 
   await client.execute(
-    "INSERT INTO user_by_username (username, password_hash, id) VALUES (?, ?, ?)",
+    "INSERT INTO user_by_username (username, password_hash, id, created_at) VALUES (?, ?, ?, ?)",
     userByUsernameParams,
     { prepare: true },
   );
