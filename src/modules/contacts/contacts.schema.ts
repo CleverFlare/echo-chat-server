@@ -6,6 +6,7 @@ CREATE TYPE last_message (
   sender_id text,
   status text
 )`;
+
 export const userContacts = `
 CREATE TABLE user_contacts (
   user_id text,

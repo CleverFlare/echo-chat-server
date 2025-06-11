@@ -66,6 +66,16 @@ export async function insertUser({
   return { firstName, lastName, email, username, id: uuid };
 }
 
+export async function findUserByUserId<T>(userId: string) {
+  const userByIdRecord = await client.execute(
+    "SELECT * FROM user_by_id WHERE id=?",
+    [userId],
+    { prepare: true },
+  );
+
+  return userByIdRecord.rows[0] as T;
+}
+
 export async function insertConnectedUser({
   userId,
   socketId,

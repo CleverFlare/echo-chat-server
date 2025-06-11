@@ -95,6 +95,10 @@ export async function addContact(username: string, userId: string) {
     { socket_id: string; user_id: string } | undefined | null
   >(contact.contact_id);
 
+  const connectedUser = await findConnectedUserByUserId<
+    { socket_id: string; user_id: string } | undefined | null
+  >(contact.user_id);
+
   if (connectedOtherParty) {
     io.to(connectedOtherParty.socket_id).emit("new-contact", {
       id: otherPartyContact.contact_id,
@@ -105,6 +109,7 @@ export async function addContact(username: string, userId: string) {
       chatId: otherPartyContact.chat_id,
       unread: otherPartyContact.unread,
       lastMessage: otherPartyContact.last_message,
+      isOnline: !!connectedUser,
     });
   }
 

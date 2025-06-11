@@ -48,6 +48,8 @@ app.use((_, res, next) => {
 
 app.use(loggerMiddleware);
 
+app.disable("etag");
+
 declare module "express" {
   interface Request {
     token?: string;

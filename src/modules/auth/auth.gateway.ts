@@ -17,7 +17,7 @@ export async function setupHandshakeAuth(socket: Socket) {
     return;
   }
 
-  logger.info("New Connection:", socket.handshake.headers.authorization);
+  logger.info(`New Connection: ${socket.handshake.headers.authorization}`);
 
   const {
     payload: {

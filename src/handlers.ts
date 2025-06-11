@@ -6,6 +6,7 @@ import messagesRouter from "./modules/messages/messages.controller";
 import { Socket, Server } from "socket.io";
 import { setupMessagingSockets } from "./modules/messages/messages.gateway";
 import { setupHandshakeAuth } from "./modules/auth/auth.gateway";
+import { setupVisibilityGateway } from "./modules/visibility/visibility.gateway";
 
 export type SocketHandler = (
   socket: Socket,
@@ -22,6 +23,7 @@ httpHandlers.use(messagesRouter);
 const socketHandlers: SocketHandler[] = [
   setupHandshakeAuth,
   setupMessagingSockets,
+  setupVisibilityGateway,
 ];
 
 export { httpHandlers, socketHandlers };
