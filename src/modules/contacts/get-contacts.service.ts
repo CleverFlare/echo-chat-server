@@ -41,13 +41,12 @@ export async function getContacts(userId: string) {
     }),
   );
 
-  const connectedUser = await findConnectedUserByUserId(contacts[0].id);
-  console.log("USER", connectedUser);
+  if (contacts[0]?.id) {
+    for (const contactIndex in contacts) {
+      const connectedUser = await findConnectedUserByUserId(contacts[0].id);
 
-  for (const contactIndex in contacts) {
-    const connectedUser = await findConnectedUserByUserId(contacts[0].id);
-
-    if (connectedUser) contacts[contactIndex].isOnline = true;
+      if (connectedUser) contacts[contactIndex].isOnline = true;
+    }
   }
 
   return contacts;
