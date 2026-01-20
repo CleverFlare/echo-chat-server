@@ -6,6 +6,7 @@ import {
   TableSchema,
 } from "../types";
 import { formatCqlValue } from "../utilities/format-cql-value";
+import { snakeCase } from "change-case";
 
 export class SelectStatement {
   constructor(
@@ -40,7 +41,10 @@ export class SelectBuilder<Schema extends TableSchema = TableSchema> {
       return this;
     }
 
-    this.columnsClause = [firstColumn, ...columns].join(", ");
+    this.columnsClause = [firstColumn, ...columns]
+      .filter((column) => column)
+      .map((c) => snakeCase(c as string))
+      .join(", ");
 
     return this;
   }
@@ -91,15 +95,29 @@ export class SelectBuilder<Schema extends TableSchema = TableSchema> {
         )
           .map((v) => `${formatCqlValue(v, type)}`)
           .join(", ");
-        return `${column} IN (${values})`;
+        return `${snakeCase(column)} IN (${values})`;
       }
 
-      return `${column} ${operator} ${formatCqlValue(value, type)}`;
+      return `${snakeCase(column)} ${operator} ${formatCqlValue(value, type)}`;
     });
 
-    const clustering = (options.clustering ?? []).map((condition) =>
-      condition.join(" "),
-    );
+    // Format clustering conditions properly (if they exist)
+    const clustering =
+      "clustering" in options && options.clustering
+        ? options.clustering.map(([column, operator, value]) => {
+            if (operator === "IN") {
+              const values = (
+                value as unknown as Array<
+                  CassandraTypeMap[keyof CassandraTypeMap]["type"]
+                >
+              )
+                .map((v) => `'${v}'`)
+                .join(", ");
+              return `${snakeCase(column)} IN (${values})`;
+            }
+            return `${snakeCase(column)} ${operator} '${value}'`;
+          })
+        : [];
 
     this.whereClause = `${[...partitions, ...clustering].join(" AND ")}`;
 

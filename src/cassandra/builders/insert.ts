@@ -1,6 +1,7 @@
 import { Client } from "cassandra-driver";
 import { InsertValues, TableSchema } from "../types";
 import { formatCqlValue } from "../utilities/format-cql-value";
+import { snakeCase } from "change-case";
 
 export class InsertStatement {
   constructor(
@@ -47,7 +48,7 @@ export class InsertBuilder<Schema extends TableSchema = TableSchema> {
       return formatCqlValue(value, type);
     });
 
-    this.columnsValues = `(${columns.join(", ")}) VALUES (${columnValues.join(", ")})`;
+    this.columnsValues = `(${columns.map((column) => snakeCase(column)).join(", ")}) VALUES (${columnValues.join(", ")})`;
 
     return this;
   }
