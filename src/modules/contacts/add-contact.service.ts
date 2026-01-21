@@ -101,11 +101,11 @@ export async function addContact(username: string, userId: string) {
 
   if (connectedOtherParty) {
     io.to(connectedOtherParty.socket_id).emit("new-contact", {
-      id: otherPartyContact.contact_id,
-      firstName: otherPartyContact.first_name,
-      lastName: otherPartyContact.last_name,
-      username: otherPartyContact.username,
-      avatarUrl: otherPartyContact.avatar_url,
+      id: me.id, // ✅ FIXED! The current user's ID (who initiated the add)
+      firstName: me.first_name,
+      lastName: me.last_name,
+      username: me.username,
+      avatarUrl: me.avatar_url,
       chatId: otherPartyContact.chat_id,
       unread: otherPartyContact.unread,
       lastMessage: otherPartyContact.last_message,
@@ -114,13 +114,14 @@ export async function addContact(username: string, userId: string) {
   }
 
   return {
-    id: contact.contact_id,
-    firstName: contact.first_name,
-    lastName: contact.last_name,
-    username: contact.username,
-    avatarUrl: contact.avatar_url,
+    id: user.id, // ✅ FIXED! The added user's ID
+    firstName: user.first_name,
+    lastName: user.last_name,
+    username: user.username,
+    avatarUrl: user.avatar_url,
     chatId: contact.chat_id,
     unread: contact.unread,
     lastMessage: contact.last_message,
+    isOnline: !!connectedOtherParty,
   };
 }
