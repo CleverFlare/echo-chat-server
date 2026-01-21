@@ -1,3 +1,5 @@
+[Click here to see the front end client repo](https://github.com/CleverFlare/echo-chat-client)
+
 # Backend Code Documentation & Guidelines
 
 ## 📌 Overview
@@ -7,19 +9,16 @@ This backend follows a **three-layered architecture** to ensure a clean separati
 ### 🔹 Three-Layered Structure
 
 1. **Transport Layer** (Handlers)
-
    - Handles HTTP-specific logic (status codes, request/response handling).
    - Does not contain any business logic.
    - Consumes services from the domain layer.
 
 2. **Domain Layer** (Services)
-
    - Houses all business logic.
    - Does not interact with the database directly.
    - Calls repositories from the data access layer.
 
 3. **Data Access Layer** (Repositories)
-
    - Acts as a **facade** for data access.
    - Keeps business logic **database-agnostic**.
    - Encapsulates all data handling operations.
