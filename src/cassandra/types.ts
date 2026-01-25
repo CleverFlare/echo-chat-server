@@ -119,13 +119,7 @@ export interface TableSchema<T extends ColumnDefinitions = ColumnDefinitions> {
   columns: T;
   // Mirrors the syntax of primary keys.
   // We won't be supporting inline primary key to prevent collision between the inline and the table-level ones.
-  primaryKey?: [
-    (
-      | keyof this["columns"]
-      | [keyof this["columns"], ...(keyof this["columns"])[]]
-    ),
-    ...(keyof this["columns"])[],
-  ];
+  primaryKey?: [keyof T | [keyof T, ...(keyof T)[]], ...(keyof T)[]];
 }
 
 export type WithOption = { type: string; value: string };

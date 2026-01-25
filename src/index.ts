@@ -163,21 +163,20 @@ cassandra.initialize({ initializeKeyspace: false }).then((c) => {
           id: "UUID",
           createdAt: "TEXT",
         },
-        primaryKey: [["username", "id"]],
+        primaryKey: [["username", "id"], "createdAt"],
       })
       .build();
 
-    const selectStatement = userByUsername
-      .select()
-      .where({
-        partition: [
-          ["username", "=", "something"],
-          ["id", "IN", ["hi"]],
-        ],
+    const userType = c
+      .create()
+      .type("user_by_username")
+      .ifNotExists()
+      .definitions({
+        name: "TEXT",
       })
       .build();
 
-    console.log(selectStatement.statement);
+    console.log(userType.statement);
   } catch (err) {
     console.error(err);
   }

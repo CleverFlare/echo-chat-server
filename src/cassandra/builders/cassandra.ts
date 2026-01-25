@@ -1,5 +1,6 @@
 import cassandra from "cassandra-driver";
 import { CreateTableBuilder } from "./create-table";
+import { CreateTypeBuilder } from "./create-type";
 
 type InitializeOptions = {
   /** Will create the keyspace if it doesn't already exist */
@@ -74,6 +75,9 @@ export class Cassandra {
     return {
       table(tableName: string, keyspaceName?: string) {
         return new CreateTableBuilder(client).table(tableName, keyspaceName);
+      },
+      type(typeName: string, keyspaceName?: string) {
+        return new CreateTypeBuilder(client).type(typeName, keyspaceName);
       },
     };
   }

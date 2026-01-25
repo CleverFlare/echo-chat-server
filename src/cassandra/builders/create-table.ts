@@ -91,7 +91,7 @@ export class CreateTableBuilder<
       if (flattenedPrimaryKey?.length !== primaryKeySet.size)
         throw new Error("Primary key elements must be unique");
 
-      let partitionKeys = [...primaryKey].shift();
+      let partitionKeys = primaryKey.shift();
 
       if (Array.isArray(partitionKeys)) {
         if (partitionKeys.length <= 1)
