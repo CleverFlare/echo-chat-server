@@ -154,7 +154,7 @@ cassandra.initialize({ initializeKeyspace: false }).then((c) => {
   try {
     const userByUsername = c
       .create()
-      .table("user_by_username")
+      .table("UserByUsername")
       .ifNotExists()
       .definitions({
         columns: {
@@ -169,7 +169,7 @@ cassandra.initialize({ initializeKeyspace: false }).then((c) => {
 
     const userType = c
       .create()
-      .type("user_by_username")
+      .type("UserType")
       .ifNotExists()
       .definitions({
         name: "TEXT",

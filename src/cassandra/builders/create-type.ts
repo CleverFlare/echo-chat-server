@@ -23,8 +23,8 @@ export class CreateTypeBuilder {
   constructor(private client: Client) {}
 
   type(typeName: string, keyspace?: string) {
-    this.typeName = typeName;
-    this.keyspace = keyspace;
+    this.typeName = changeCase.snakeCase(typeName);
+    this.keyspace = keyspace && changeCase.snakeCase(keyspace);
 
     return this;
   }
@@ -55,7 +55,7 @@ export class CreateTypeBuilder {
 
     if (this.ifNotExistsClause) parts.push("IF NOT EXISTS");
 
-    if (!this.typeName) throw new Error("Table name required");
+    if (!this.typeName) throw new Error("Type name required");
 
     if (!this.keyspace) parts.push(this.typeName);
     else

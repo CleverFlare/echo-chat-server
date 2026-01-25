@@ -56,8 +56,8 @@ export class CreateTableBuilder<
   constructor(private client: Client) {}
 
   table(tableName: string, keyspace?: string) {
-    this.tableName = tableName;
-    this.keyspace = keyspace;
+    this.tableName = changeCase.snakeCase(tableName);
+    this.keyspace = keyspace && changeCase.snakeCase(keyspace);
 
     return this;
   }
