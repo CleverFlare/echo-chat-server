@@ -2,12 +2,18 @@ import * as changeCase from "change-case";
 
 import { ColumnDefinitions } from "../types";
 import { Client } from "cassandra-driver";
+import { DropTypeBuilder } from "./drop-type";
 
 export class CreateTypeStatement {
   constructor(
     private client: Client,
     public statement: string,
+    private typeName: string,
   ) {}
+
+  drop() {
+    return new DropTypeBuilder(this.client).type(this.typeName);
+  }
 
   async execute() {
     return this.client.execute(this.statement);
@@ -67,6 +73,10 @@ export class CreateTypeBuilder {
 
     parts.push(this.columns);
 
-    return new CreateTypeStatement(this.client, parts.join(" ") + ";");
+    return new CreateTypeStatement(
+      this.client,
+      parts.join(" ") + ";",
+      this.typeName,
+    );
   }
 }

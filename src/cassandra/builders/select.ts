@@ -1,25 +1,32 @@
 import { Client } from "cassandra-driver";
 import {
+  CassandraResultType,
   CassandraTypeMap,
-  SelectColumns,
+  ColumnDefinitions,
+  SchemaToType,
   SelectWhereOptions,
   TableSchema,
 } from "../types";
 import { formatCqlValue } from "../utilities/format-cql-value";
 import { snakeCase } from "change-case";
 
-export class SelectStatement {
+export class SelectStatement<Row> {
   constructor(
     private client: Client,
     public statement: string,
   ) {}
 
   async execute() {
-    return this.client.execute(this.statement);
+    return this.client.execute(this.statement) as Promise<
+      CassandraResultType<Row>
+    >;
   }
 }
 
-export class SelectBuilder<Schema extends TableSchema = TableSchema> {
+export class SelectBuilder<
+  Schema extends TableSchema = TableSchema,
+  SelectedColumns extends ColumnDefinitions = ColumnDefinitions,
+> {
   private tableName?: string;
   private keyspaceName?: string;
   private columnsClause?: string;
@@ -30,15 +37,25 @@ export class SelectBuilder<Schema extends TableSchema = TableSchema> {
     private schema: Schema,
   ) {}
 
-  columns<T extends SelectColumns<Schema["columns"], Schema> | "*">(
+  columns<
+    T extends keyof Schema["columns"] | "*",
+    Rest extends readonly (keyof Schema["columns"])[],
+  >(
     firstColumn?: T,
-    ...columns: T extends "*" | undefined
-      ? never[]
-      : SelectColumns<Schema["columns"], Schema>[]
-  ) {
-    if (firstColumn === "*") {
+    ...columns: T extends "*" | undefined ? never[] : Rest
+  ): SelectBuilder<
+    Schema,
+    Pick<
+      Schema["columns"],
+      T extends "*" ? keyof Schema["columns"] : T | Rest[number]
+    >
+  > {
+    if (firstColumn === undefined || firstColumn === "*") {
       this.columnsClause = "*";
-      return this;
+      return this as unknown as SelectBuilder<
+        Schema,
+        Pick<Schema["columns"], keyof Schema["columns"]>
+      >;
     }
 
     this.columnsClause = [firstColumn, ...columns]
@@ -46,7 +63,13 @@ export class SelectBuilder<Schema extends TableSchema = TableSchema> {
       .map((c) => snakeCase(c as string))
       .join(", ");
 
-    return this;
+    return this as unknown as SelectBuilder<
+      Schema,
+      Pick<
+        Schema["columns"],
+        T extends "*" ? keyof Schema["columns"] : T | Rest[number]
+      >
+    >;
   }
 
   from(tableName: string, keyspaceName?: string) {
@@ -143,6 +166,9 @@ export class SelectBuilder<Schema extends TableSchema = TableSchema> {
       parts.push(this.whereClause);
     }
 
-    return new SelectStatement(this.client, parts.join(" ") + ";");
+    return new SelectStatement<SchemaToType<SelectedColumns>>(
+      this.client,
+      parts.join(" ") + ";",
+    );
   }
 }

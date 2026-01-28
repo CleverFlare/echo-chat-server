@@ -120,6 +120,7 @@
 
 import { env } from "./env";
 import Cassandra from "./cassandra";
+import { SchemaToType } from "./cassandra/types";
 
 // const startDate = new Date();
 //
@@ -150,7 +151,7 @@ const cassandra = new Cassandra({
   keyspace: env.KEYSPACE,
 });
 
-cassandra.initialize({ initializeKeyspace: false }).then((c) => {
+cassandra.initialize({ initializeKeyspace: true }).then(async (c) => {
   try {
     const userByUsername = c
       .create()

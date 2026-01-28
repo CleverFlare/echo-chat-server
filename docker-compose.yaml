@@ -1,6 +1,10 @@
 version: "3.8"
 
 services:
+  neo-echo-chat:
+    image: scylladb/scylla
+    container_name: some-scylla
+
   echo-chat:
     image: cassandra:latest
     container_name: cass_cluster

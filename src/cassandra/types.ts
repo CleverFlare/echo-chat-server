@@ -243,3 +243,10 @@ export type SelectWhereOptions<
           ...ClusteringConditions<T, Schema>[],
         ];
       };
+
+import type { types } from "cassandra-driver";
+
+export type CassandraResultType<Row> = types.ResultSet & {
+  rows: Row[];
+  first: () => Row;
+};

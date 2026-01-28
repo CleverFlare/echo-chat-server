@@ -10,6 +10,7 @@ import {
 import { Client } from "cassandra-driver";
 import { InsertBuilder } from "./insert";
 import { SelectBuilder } from "./select";
+import { DropTableBuilder } from "./drop-table";
 
 export class CreateTableStatement<Schema extends TableSchema = TableSchema> {
   constructor(
@@ -26,15 +27,20 @@ export class CreateTableStatement<Schema extends TableSchema = TableSchema> {
       .values(data);
   }
 
-  select<T extends SelectColumns<Schema["columns"], Schema> | "*">(
-    firstColumn?: T,
-    ...columns: T extends "*" | undefined
-      ? never[]
-      : SelectColumns<Schema["columns"], Schema>[]
-  ) {
-    return new SelectBuilder(this.client, this.schema)
-      .columns(firstColumn, ...columns)
-      .from(this.tableName, this.keyspaceName);
+  select<
+    T extends keyof Schema["columns"] | "*",
+    Rest extends readonly (keyof Schema["columns"])[],
+  >(firstColumn?: T, ...columns: T extends "*" | undefined ? never[] : Rest) {
+    return (
+      new SelectBuilder(this.client, this.schema)
+        // @ts-expect-error Accept columns
+        .columns(firstColumn, ...columns)
+        .from(this.tableName, this.keyspaceName)
+    );
+  }
+
+  drop() {
+    return new DropTableBuilder(this.client).table(this.tableName);
   }
 
   async execute() {
