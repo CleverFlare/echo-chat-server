@@ -118,9 +118,9 @@
 //   });
 // });
 
-import { env } from "./env";
-import Cassandra from "./cassandra";
-import { SchemaToType } from "./cassandra/types";
+import { collection } from "./cassandra/types";
+import { userContacts } from "./modules/contacts/contacts.schema";
+import { cassandra } from "./shared/database";
 
 // const startDate = new Date();
 //
@@ -145,39 +145,9 @@ import { SchemaToType } from "./cassandra/types";
 //   );
 // });
 
-const cassandra = new Cassandra({
-  localDataCenter: env.DATA_CENTER,
-  contactPoints: [env.DATABASE_URL],
-  keyspace: env.KEYSPACE,
-});
-
 cassandra.initialize({ initializeKeyspace: true }).then(async (c) => {
   try {
-    const userByUsername = c
-      .create()
-      .table("UserByUsername")
-      .ifNotExists()
-      .definitions({
-        columns: {
-          username: "TEXT",
-          passwordHash: "TEXT",
-          id: "UUID",
-          createdAt: "TEXT",
-        },
-        primaryKey: [["username", "id"], "createdAt"],
-      })
-      .build();
-
-    const userType = c
-      .create()
-      .type("UserType")
-      .ifNotExists()
-      .definitions({
-        name: "TEXT",
-      })
-      .build();
-
-    console.log(userType.statement);
+    console.log(userContacts.build().statement);
   } catch (err) {
     console.error(err);
   }

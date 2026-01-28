@@ -2,6 +2,7 @@ import * as changeCase from "change-case";
 
 import {
   CassandraResultType,
+  CollectionTypeDefinition,
   ColumnDefinitions,
   InsertValues,
   TableSchema,
@@ -11,6 +12,7 @@ import { Client } from "cassandra-driver";
 import { InsertBuilder } from "./insert";
 import { SelectBuilder } from "./select";
 import { DropTableBuilder } from "./drop-table";
+import { toCQLType } from "../utilities/to-cql-type";
 
 export class CreateTableStatement<Schema extends TableSchema = TableSchema> {
   constructor(
@@ -83,10 +85,12 @@ export class CreateTableBuilder<
     const entries = Object.entries(schema.columns);
 
     let columns = entries
-      .map(
-        ([columnName, columnType]) =>
-          `${changeCase.snakeCase(columnName)} ${columnType}`,
-      )
+      .map(([columnName, columnType]) => {
+        if ((columnType as CollectionTypeDefinition)?._meta)
+          return `${changeCase.snakeCase(columnName)} ${toCQLType(columnType)}`;
+
+        return `${changeCase.snakeCase(columnName)} ${columnType}`;
+      })
       .join(", ");
 
     if ("primaryKey" in schema) {

@@ -1,12 +1,12 @@
 import { Router } from "express";
-import authRouter from "./modules/auth/auth.controller";
-import profileRouter from "./modules/profile/profile.controller";
-import contactsRouter from "./modules/contacts/contacts.controller";
-import messagesRouter from "./modules/messages/messages.controller";
+import authRouter from "./old-modules/auth/auth.controller";
+import profileRouter from "./old-modules/profile/profile.controller";
+import contactsRouter from "./old-modules/contacts/contacts.controller";
+import messagesRouter from "./old-modules/messages/messages.controller";
 import { Socket, Server } from "socket.io";
-import { setupMessagingSockets } from "./modules/messages/messages.gateway";
-import { setupHandshakeAuth } from "./modules/auth/auth.gateway";
-import { setupVisibilityGateway } from "./modules/visibility/visibility.gateway";
+import { setupMessagingSockets } from "./old-modules/messages/messages.gateway";
+import { setupHandshakeAuth } from "./old-modules/auth/auth.gateway";
+import { setupVisibilityGateway } from "./old-modules/visibility/visibility.gateway";
 
 export type SocketHandler = (
   socket: Socket,

@@ -1,3 +1,131 @@
+// Type to represent a UDT that's been created via your builder
+export type UDTReference<
+  TFields extends Record<string, ExtendedCassandraType>,
+> = {
+  type: {
+    [K in keyof TFields]: ExtractType<TFields[K]>;
+  };
+  cqlType: string; // Just the name of the UDT
+  operators: Operators["EQ"];
+  _meta: { kind: "udt"; name: string; fields: TFields };
+};
+
+// Base collection types without frozen
+export type BaseCollectionType =
+  | {
+      // eslint-disable-next-line
+      type: Map<any, any>;
+      operators: Operators["EQ"];
+      _meta: {
+        kind: "map";
+        keyType: CassandraSimpleType;
+        valueType: CassandraSimpleType;
+      };
+    }
+  | {
+      // eslint-disable-next-line
+      type: Set<any>;
+      operators: Operators["EQ"];
+      _meta: { kind: "set"; elementType: CassandraSimpleType };
+    }
+  | {
+      // eslint-disable-next-line
+      type: any[];
+      operators: Operators["EQ"];
+      _meta: { kind: "list"; elementType: CassandraSimpleType };
+    }
+  | {
+      // eslint-disable-next-line
+      type: any[];
+      operators: Operators["EQ"];
+      _meta: { kind: "tuple"; types: readonly CassandraSimpleType[] };
+    }
+  // eslint-disable-next-line
+  | UDTReference<any>;
+
+// Frozen wrapper type
+export type FrozenType<T extends BaseCollectionType> = T & {
+  _meta: T["_meta"] & { frozen: true };
+};
+
+// Full collection type definition including frozen
+export type CollectionTypeDefinition =
+  | BaseCollectionType
+  | FrozenType<BaseCollectionType>;
+
+// Helper types for type constructors
+type MapType<K extends CassandraSimpleType, V extends CassandraSimpleType> = {
+  type: Map<
+    CassandraTypeMap[Uppercase<K>]["type"],
+    CassandraTypeMap[Uppercase<V>]["type"]
+  >;
+  operators: Operators["EQ"];
+  _meta: { kind: "map"; keyType: K; valueType: V };
+};
+
+type SetType<T extends CassandraSimpleType> = {
+  type: Set<CassandraTypeMap[Uppercase<T>]["type"]>;
+  operators: Operators["EQ"];
+  _meta: { kind: "set"; elementType: T };
+};
+
+type ListType<T extends CassandraSimpleType> = {
+  type: CassandraTypeMap[Uppercase<T>]["type"][];
+  operators: Operators["EQ"];
+  _meta: { kind: "list"; elementType: T };
+};
+
+type TupleType<T extends readonly CassandraSimpleType[]> = {
+  type: {
+    [K in keyof T]: T[K] extends CassandraSimpleType
+      ? CassandraTypeMap[Uppercase<T[K]>]["type"]
+      : never;
+  };
+  operators: Operators["EQ"];
+  _meta: { kind: "tuple"; types: T };
+};
+
+// Runtime constructors with proper return types
+export const collection = {
+  map: <K extends CassandraSimpleType, V extends CassandraSimpleType>(
+    keyType: K,
+    valueType: V,
+  ): MapType<K, V> => ({
+    // eslint-disable-next-line
+    type: new Map() as any,
+    operators: "=" as const,
+    _meta: { kind: "map", keyType, valueType },
+  }),
+
+  set: <T extends CassandraSimpleType>(elementType: T): SetType<T> => ({
+    // eslint-disable-next-line
+    type: new Set() as any,
+    operators: "=" as const,
+    _meta: { kind: "set", elementType },
+  }),
+
+  list: <T extends CassandraSimpleType>(elementType: T): ListType<T> => ({
+    // eslint-disable-next-line
+    type: [] as any,
+    operators: "=" as const,
+    _meta: { kind: "list", elementType },
+  }),
+
+  tuple: <T extends readonly CassandraSimpleType[]>(
+    ...types: T
+  ): TupleType<T> => ({
+    // eslint-disable-next-line
+    type: [] as any,
+    operators: "=" as const,
+    _meta: { kind: "tuple", types },
+  }),
+
+  frozen: <T extends BaseCollectionType>(innerType: T): FrozenType<T> => ({
+    ...innerType,
+    _meta: { ...innerType._meta, frozen: true },
+  }),
+};
+
 // Map Cassandra types to TypeScript types
 export type Operators = {
   EQ: "=";
@@ -106,6 +234,13 @@ export const cassandraTypes = [
 export type CassandraTypeLower = Lowercase<keyof CassandraTypeMap>;
 export type CassandraTypeUpper = keyof CassandraTypeMap;
 
+export type CassandraSimpleType = CassandraTypeLower | CassandraTypeUpper;
+
+// Extended type including primitives and collections
+export type ExtendedCassandraType =
+  | CassandraSimpleType
+  | CollectionTypeDefinition;
+
 export const c = cassandraTypes.reduce(
   (previous, current) => ({ ...previous, [current]: current.toUpperCase() }),
   {},
@@ -113,7 +248,7 @@ export const c = cassandraTypes.reduce(
   [T in CassandraTypeLower]: Uppercase<T>;
 };
 
-export type ColumnDefinitions = Record<string, CassandraTypeUpper>;
+export type ColumnDefinitions = Record<string, ExtendedCassandraType>;
 
 export interface TableSchema<T extends ColumnDefinitions = ColumnDefinitions> {
   columns: T;
@@ -124,11 +259,16 @@ export interface TableSchema<T extends ColumnDefinitions = ColumnDefinitions> {
 
 export type WithOption = { type: string; value: string };
 
-// Convert schema to TypeScript types
-export type SchemaToType<T extends ColumnDefinitions> = {
-  [K in keyof T]: T[K] extends keyof CassandraTypeMap
-    ? CassandraTypeMap[T[K]]["type"]
+// Helper to extract the actual TypeScript type
+export type ExtractType<T> = T extends { type: infer U }
+  ? U
+  : T extends CassandraTypeUpper
+    ? CassandraTypeMap[T]["type"]
     : never;
+
+// Updated SchemaToType
+export type SchemaToType<T extends ColumnDefinitions> = {
+  [K in keyof T]: ExtractType<T[K]>;
 };
 
 // Extract all primary key columns

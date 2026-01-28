@@ -1,3 +1,3 @@
 import { Cassandra } from "./builders/cassandra";
 
-export default Cassandra;
+export default { Cassandra };

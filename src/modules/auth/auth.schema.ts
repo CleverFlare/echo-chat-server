@@ -1,32 +1,48 @@
-export const loginUser = `create table user_by_username (
-  username TEXT PRIMARY KEY,
-  password_hash TEXT,
-  id TEXT,
-  created_at timestamp
-)`;
+import { cassandra } from "@/shared/database";
 
-export const registerUser = `create table user_by_id (
-  id TEXT PRIMARY KEY,
-  username TEXT,
-  password_hash TEXT,
-  first_name TEXT,
-  last_name TEXT,
-  email TEXT,
-  avatar_url TEXT,
-  created_at timestamp,
-  bio text
-)`;
+export const connectedBySocketId = cassandra
+  .create()
+  .table("connectedBySocketId")
+  .definitions({
+    columns: { userId: "TEXT", socketId: "TEXT" },
+    primaryKey: ["socketId"],
+  });
 
-export const connectedByUserId = `
-CREATE TABLE connected_by_user_id (
-  user_id TEXT PRIMARY KEY,
-  socket_id TEXT,
-)
-`;
+export const connectedByUserId = cassandra
+  .create()
+  .table("connectedByUserId")
+  .definitions({
+    columns: { userId: "TEXT", socketId: "TEXT" },
+    primaryKey: ["userId"],
+  });
 
-export const connectedBySocketId = `
-CREATE TABLE connected_by_socket_id (
-  socket_id TEXT PRIMARY KEY,
-  user_id TEXT,
-)
-`;
+export const userByUsername = cassandra
+  .create()
+  .table("userByUsername")
+  .definitions({
+    columns: {
+      username: "TEXT",
+      passwordHash: "TEXT",
+      id: "TEXT",
+      createdAt: "TIMESTAMP",
+    },
+    primaryKey: ["username"],
+  });
+
+export const userById = cassandra
+  .create()
+  .table("userById")
+  .definitions({
+    columns: {
+      id: "TEXT",
+      username: "TEXT",
+      passwordHash: "TEXT",
+      firstName: "TEXT",
+      lastName: "TEXT",
+      email: "TEXT",
+      avatarUrl: "TEXT",
+      createdAt: "TIMESTAMP",
+      bio: "TEXT",
+    },
+    primaryKey: ["id"],
+  });

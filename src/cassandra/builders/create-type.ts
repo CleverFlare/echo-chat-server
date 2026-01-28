@@ -1,18 +1,30 @@
 import * as changeCase from "change-case";
 
-import { CassandraResultType, ColumnDefinitions } from "../types";
+import {
+  CassandraResultType,
+  CollectionTypeDefinition,
+  ColumnDefinitions,
+} from "../types";
 import { Client } from "cassandra-driver";
 import { DropTypeBuilder } from "./drop-type";
+import { toCQLType } from "../utilities/to-cql-type";
+import { udtFromSchema } from "../utilities/udt-from-schema";
 
-export class CreateTypeStatement {
+export class CreateTypeStatement<C extends ColumnDefinitions> {
   constructor(
     private client: Client,
     public statement: string,
     private typeName: string,
+    private schema: C,
   ) {}
 
   drop() {
     return new DropTypeBuilder(this.client).type(this.typeName);
+  }
+
+  reference() {
+    console.log("TYPE SCHEMA", this.schema);
+    return udtFromSchema(this.typeName, this.schema);
   }
 
   async execute() {
@@ -22,11 +34,12 @@ export class CreateTypeStatement {
   }
 }
 
-export class CreateTypeBuilder {
+export class CreateTypeBuilder<C extends ColumnDefinitions> {
   private typeName?: string;
   private keyspace?: string;
   private ifNotExistsClause = false;
   private columns?: string;
+  private schema!: C;
 
   constructor(private client: Client) {}
 
@@ -43,22 +56,28 @@ export class CreateTypeBuilder {
     return this;
   }
 
-  definitions<const C extends ColumnDefinitions>(schema: C): CreateTypeBuilder {
+  definitions<const C extends ColumnDefinitions>(
+    schema: C,
+  ): CreateTypeBuilder<C> {
+    this.schema = schema as unknown as typeof this.schema;
+
     const entries = Object.entries(schema);
 
     const columns = entries
-      .map(
-        ([columnName, columnType]) =>
-          `${changeCase.snakeCase(columnName)} ${columnType}`,
-      )
+      .map(([columnName, columnType]) => {
+        if ((columnType as CollectionTypeDefinition)?._meta)
+          return `${changeCase.snakeCase(columnName)} ${toCQLType(columnType)}`;
+
+        return `${changeCase.snakeCase(columnName)} ${columnType}`;
+      })
       .join(", ");
 
     this.columns = `(${columns})`;
 
-    return this;
+    return this as unknown as CreateTypeBuilder<C>;
   }
 
-  build(): CreateTypeStatement {
+  build(): CreateTypeStatement<C> {
     const parts: string[] = ["CREATE", "TYPE"];
 
     if (this.ifNotExistsClause) parts.push("IF NOT EXISTS");
@@ -75,10 +94,11 @@ export class CreateTypeBuilder {
 
     parts.push(this.columns);
 
-    return new CreateTypeStatement(
+    return new CreateTypeStatement<C>(
       this.client,
       parts.join(" ") + ";",
       this.typeName,
+      this.schema,
     );
   }
 }

@@ -1,22 +1,31 @@
-export const lastMessage = `
-CREATE TYPE last_message (
-  id text,
-  content text,
-  timestamp timestamp,
-  sender_id text,
-  status text
-)`;
+import { collection } from "@/cassandra/types";
+import { cassandra } from "@/shared/database";
 
-export const userContacts = `
-CREATE TABLE user_contacts (
-  user_id text,
-  contact_id text,
-  first_name text,
-  last_name text,
-  username text,
-  avatar_url text,
-  chat_id text,
-  unread int,
-  last_message frozen<last_message>,
-  PRIMARY KEY (user_id, contact_id)
-)`;
+export const lastMessage = cassandra
+  .create()
+  .type("lastMessage")
+  .definitions({
+    id: "TEXT",
+    content: "TEXT",
+    timestamp: "TIMESTAMP",
+    senderId: "TEXT",
+    status: "TEXT",
+  })
+  .build();
+
+export const userContacts = cassandra
+  .create()
+  .table("userContacts")
+  .definitions({
+    columns: {
+      userId: "TEXT",
+      contactId: "TEXT",
+      firstName: "TEXT",
+      lastName: "TEXT",
+      username: "TEXT",
+      avatarUrl: "TEXT",
+      chatId: "TEXT",
+      unread: "TEXT",
+      lastMessage: collection.frozen(lastMessage.reference()),
+    },
+  });
