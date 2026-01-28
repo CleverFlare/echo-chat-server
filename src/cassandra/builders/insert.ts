@@ -1,5 +1,5 @@
 import { Client } from "cassandra-driver";
-import { InsertValues, TableSchema } from "../types";
+import { CassandraResultType, InsertValues, TableSchema } from "../types";
 import { formatCqlValue } from "../utilities/format-cql-value";
 import { snakeCase } from "change-case";
 
@@ -10,7 +10,9 @@ export class InsertStatement {
   ) {}
 
   async execute() {
-    return this.client.execute(this.statement);
+    return this.client.execute(this.statement) as Promise<
+      CassandraResultType<undefined>
+    >;
   }
 }
 

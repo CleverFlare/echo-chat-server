@@ -247,6 +247,6 @@ export type SelectWhereOptions<
 import type { types } from "cassandra-driver";
 
 export type CassandraResultType<Row> = types.ResultSet & {
-  rows: Row[];
-  first: () => Row;
+  rows: Row extends undefined ? undefined : Row[];
+  first: Row extends undefined ? never : () => Row;
 };

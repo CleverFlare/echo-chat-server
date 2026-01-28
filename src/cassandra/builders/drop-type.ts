@@ -1,16 +1,17 @@
 import { Client } from "cassandra-driver";
 import { snakeCase } from "change-case";
+import { CassandraResultType } from "../types";
 
 export class DropTypeStatement {
   constructor(
     private client: Client,
     public statement: string,
-    private typeName: string,
-    private keyspace?: string,
   ) {}
 
   async execute() {
-    return this.client.execute(this.statement);
+    return this.client.execute(this.statement) as Promise<
+      CassandraResultType<undefined>
+    >;
   }
 }
 
@@ -43,11 +44,6 @@ export class DropTypeBuilder {
     if (this.keyspace) parts.push(`${this.keyspace}.${this.typeName}`);
     else parts.push(this.typeName);
 
-    return new DropTypeStatement(
-      this.client,
-      parts.join(" ") + ";",
-      this.typeName,
-      this.keyspace,
-    );
+    return new DropTypeStatement(this.client, parts.join(" ") + ";");
   }
 }

@@ -1,9 +1,9 @@
 import * as changeCase from "change-case";
 
 import {
+  CassandraResultType,
   ColumnDefinitions,
   InsertValues,
-  SelectColumns,
   TableSchema,
   WithOption,
 } from "../types";
@@ -44,7 +44,9 @@ export class CreateTableStatement<Schema extends TableSchema = TableSchema> {
   }
 
   async execute() {
-    return this.client.execute(this.statement);
+    return this.client.execute(this.statement) as Promise<
+      CassandraResultType<undefined>
+    >;
   }
 }
 

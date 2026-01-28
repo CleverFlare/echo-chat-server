@@ -1,6 +1,6 @@
 import * as changeCase from "change-case";
 
-import { ColumnDefinitions } from "../types";
+import { CassandraResultType, ColumnDefinitions } from "../types";
 import { Client } from "cassandra-driver";
 import { DropTypeBuilder } from "./drop-type";
 
@@ -16,7 +16,9 @@ export class CreateTypeStatement {
   }
 
   async execute() {
-    return this.client.execute(this.statement);
+    return this.client.execute(this.statement) as Promise<
+      CassandraResultType<undefined>
+    >;
   }
 }
 
