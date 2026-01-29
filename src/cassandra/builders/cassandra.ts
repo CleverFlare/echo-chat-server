@@ -76,9 +76,9 @@ export class Cassandra {
       table(tableName: string, keyspaceName?: string) {
         return new CreateTableBuilder(client).table(tableName, keyspaceName);
       },
-      type(typeName: string, keyspaceName?: string) {
-        return new CreateTypeBuilder(client).type(typeName, keyspaceName);
-      },
+      // type(typeName: string, keyspaceName?: string) {
+      //   return new CreateTypeBuilder(client).type(typeName, keyspaceName);
+      // },
     };
   }
 }
