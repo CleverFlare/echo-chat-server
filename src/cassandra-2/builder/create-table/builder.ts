@@ -1,41 +1,112 @@
-class CreateTableBuilder {
-  parts: {
-    keyspace?: string;
-    table?: string;
-    ifNotExists?: boolean;
-    columns?: string;
-    primaryKey?: string;
-    width?: string[];
-  } = {
-    ifNotExists: false,
-    width: [],
-  };
+import { cql } from "@/cassandra-2/cql-types";
+import { ColumnsSchema } from "./types";
 
-  constructor() {}
+type CreateTableBuilderInput = {
+  keyspace: string;
+  table: string;
+  ifNotExists: boolean;
+  columns: ColumnsSchema;
+  primaryKey: [string | string[], ...string[]];
+  clusteringOrderBy: Record<string, "asc" | "desc">;
+};
 
-  keyspace(name: string) {
-    this.parts.keyspace = name;
+type CreateTableBuilderGeneric = Partial<CreateTableBuilderInput>;
 
-    return this;
+export class CreateTableBuilder<T extends CreateTableBuilderGeneric> {
+  #actual: T;
+
+  private constructor(actual: T) {
+    this.#actual = actual;
   }
 
-  table(name: string) {
-    this.parts.table = name;
-
-    return this;
+  static create() {
+    return new CreateTableBuilder({});
   }
 
-  ifNotExists(option?: boolean) {
-    this.parts.ifNotExists = option !== undefined ? option : true;
-
-    return this;
+  keyspace(this: CreateTableBuilder<T & { keyspace?: never }>, name: string) {
+    return new CreateTableBuilder({
+      ...this.#actual,
+      keyspace: name,
+      hasKeyspace: true,
+    });
   }
 
-  columns() {}
+  table(this: CreateTableBuilder<T & { table?: never }>, name: string) {
+    return new CreateTableBuilder({
+      ...this.#actual,
+      table: name,
+      hasTable: true,
+    });
+  }
 
-  primaryKey() {}
+  ifNotExists(
+    this: CreateTableBuilder<T & { ifNotExists?: never }>,
+    option?: boolean,
+  ) {
+    return new CreateTableBuilder({
+      ...this.#actual,
+      ifNotExists: option ?? true,
+      hasIfNotExists: true,
+    });
+  }
+
+  columns<const C extends ColumnsSchema>(
+    this: CreateTableBuilder<T & { columns?: never }>,
+    columns: C,
+  ) {
+    return new CreateTableBuilder({ ...this.#actual, columns });
+  }
+
+  primaryKey<
+    const PK extends keyof T["columns"],
+    const CK extends (keyof T["columns"])[],
+  >(
+    this: CreateTableBuilder<{ primaryKey?: never } & T>,
+    partitionKey: PK | PK[],
+    ...clusteringKeys: CK
+  ) {
+    return new CreateTableBuilder<
+      Exclude<T, "primaryKey"> & {
+        primaryKey: [PK | PK[], ...CK];
+      }
+    >({
+      ...this.#actual,
+      primaryKey: [partitionKey, ...clusteringKeys] as const,
+    });
+  }
+
+  clusteringOrderBy<
+    PK extends string | readonly string[],
+    CK extends readonly string[],
+  >(
+    this: CreateTableBuilder<
+      T & {
+        primaryKey: [PK, ...CK];
+        clusteringOrderBy?: never;
+      }
+    >,
+    options: Partial<Record<CK[number], "asc" | "desc">>,
+  ) {
+    return new CreateTableBuilder({
+      ...this.#actual,
+      clusteringOrderBy: options,
+    });
+  }
 
   with() {}
 
   build() {}
 }
+
+// eslint-disable-next-line
+const example = CreateTableBuilder.create()
+  .table("table")
+  .ifNotExists()
+  .columns({
+    id: cql.scalar.uuid,
+    firstName: cql.scalar.text,
+    lastName: cql.scalar.text,
+    email: cql.scalar.text,
+  })
+  .primaryKey(["id", "email"], "firstName")
+  .clusteringOrderBy({ firstName: "asc" });
