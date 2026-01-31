@@ -2,6 +2,7 @@ import { cql } from "../../cql-types";
 import { CreateTableBuilder } from "./builder";
 import { withOptions } from "../../with-options";
 import { expect, test } from "vitest";
+import { CreateTableContext } from "./context";
 
 const builderExample = CreateTableBuilder.create()
   .table("table")

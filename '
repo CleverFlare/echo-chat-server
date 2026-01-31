@@ -1,22 +1,39 @@
 import { WithOption } from "@/cassandra-2/with-options/types";
 import { CreateTableBuilderGeneric, Schema } from "./types";
-import { CreateTableContext } from "./context";
 
-export class CreateTableBuilder<TState extends CreateTableBuilderGeneric> {
+/**
+ * Adapter function type that transforms the builder result
+ */
+export type BuilderAdapter<
+  TContext extends CreateTableBuilderGeneric,
+  TResult,
+> = (statement: string, context: TContext) => TResult;
+
+export class CreateTableBuilder<
+  TState extends CreateTableBuilderGeneric,
+  // eslint-disable-next-line
+  TAdapter extends BuilderAdapter<any, any> | undefined = undefined,
+> {
   #actual: TState;
+  #adapter?: TAdapter;
 
-  private constructor(actual: TState) {
+  private constructor(actual: TState, adapter?: TAdapter) {
     this.#actual = actual;
+    this.#adapter = adapter;
   }
 
   static create() {
-    return new CreateTableBuilder({});
+    return new CreateTableBuilder({}, undefined);
   }
 
-  private clone<T extends CreateTableBuilderGeneric>(
-    actual: T,
-  ): CreateTableBuilder<T> {
-    return new CreateTableBuilder(actual);
+  withAdapter<TResult>(
+    adapter: BuilderAdapter<TState, TResult>,
+  ): CreateTableBuilder<TState, BuilderAdapter<TState, TResult>> {
+    return new CreateTableBuilder(this.#actual, adapter);
+  }
+
+  private clone<T extends CreateTableBuilderGeneric>(actual: T) {
+    return new CreateTableBuilder<T, TAdapter>(actual, this.#adapter);
   }
 
   keyspace(
@@ -121,10 +138,7 @@ export class CreateTableBuilder<TState extends CreateTableBuilderGeneric> {
 
   private assembleSchema(
     this: CreateTableBuilder<
-      TState & {
-        columns: Schema;
-        primaryKey: [string | string[], ...string[]];
-      }
+      TState & { columns: Schema; primaryKey: [string | string[], ...string[]] }
     >,
   ) {
     const primaryKey = [...this.#actual.primaryKey];
@@ -142,7 +156,7 @@ export class CreateTableBuilder<TState extends CreateTableBuilderGeneric> {
     return `(\n${columns.join(",\n")} PRIMARY KEY ( ${primaryKey.join(", ")} )\n)`;
   }
 
-  protected buildCQL(
+  build(
     this: CreateTableBuilder<
       TState & {
         table: string;
@@ -184,33 +198,8 @@ export class CreateTableBuilder<TState extends CreateTableBuilderGeneric> {
       parts.push(formattedWithOptions);
     }
 
-    return parts.join(" ") + ";";
-  }
+    const cql = parts.join(" ") + ";";
 
-  build(
-    this: CreateTableBuilder<
-      TState & {
-        table: string;
-        columns: Schema;
-        primaryKey: [string | string[], ...string[]];
-      }
-    >,
-  ) {
-    const cql = this.buildCQL();
-
-    // Default behavior: return cql and context
-    return CreateTableContext.create<TState>(cql, this.#actual);
-  }
-
-  toCQL(
-    this: CreateTableBuilder<
-      TState & {
-        table: string;
-        columns: Schema;
-        primaryKey: [string | string[], ...string[]];
-      }
-    >,
-  ): string {
-    return this.buildCQL();
+    return { cql, context: this.#actual };
   }
 }
