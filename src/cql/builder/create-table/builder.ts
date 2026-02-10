@@ -1,39 +1,29 @@
-import { WithOption } from "@/cassandra-2/with-options/types";
-import { CreateTableBuilderGeneric, Schema } from "./types";
+import { WithOption } from "@/cql/with-options/types";
+import { CreateTableBuilderInput } from "./types";
+import { Schema, TableContext } from "../../types";
+import { CreateTableContext } from "./context";
+import { snakeCase } from "change-case";
+import { SnakeCase, SnakeCasedProperties } from "type-fest";
+import { Client } from "cassandra-driver";
 
-/**
- * Adapter function type that transforms the builder result
- */
-export type BuilderAdapter<
-  TContext extends CreateTableBuilderGeneric,
-  TResult,
-> = (statement: string, context: TContext) => TResult;
-
-export class CreateTableBuilder<
-  TState extends CreateTableBuilderGeneric,
-  // eslint-disable-next-line
-  TAdapter extends BuilderAdapter<any, any> | undefined = undefined,
-> {
+export class CreateTableBuilder<TState extends CreateTableBuilderInput> {
   #actual: TState;
-  #adapter?: TAdapter;
 
-  private constructor(actual: TState, adapter?: TAdapter) {
+  private constructor(
+    private client: Client,
+    actual: TState,
+  ) {
     this.#actual = actual;
-    this.#adapter = adapter;
   }
 
-  static create() {
-    return new CreateTableBuilder({}, undefined);
+  static create(client: Client) {
+    return new CreateTableBuilder(client, {});
   }
 
-  withAdapter<TResult>(
-    adapter: BuilderAdapter<TState, TResult>,
-  ): CreateTableBuilder<TState, BuilderAdapter<TState, TResult>> {
-    return new CreateTableBuilder(this.#actual, adapter);
-  }
-
-  private clone<T extends CreateTableBuilderGeneric>(actual: T) {
-    return new CreateTableBuilder<T, TAdapter>(actual, this.#adapter);
+  private clone<T extends CreateTableBuilderInput>(
+    actual: T,
+  ): CreateTableBuilder<T> {
+    return new CreateTableBuilder(this.client, actual);
   }
 
   keyspace(
@@ -42,14 +32,14 @@ export class CreateTableBuilder<
   ) {
     return this.clone({
       ...this.#actual,
-      keyspace: name,
+      keyspace: snakeCase(name) as SnakeCase<typeof name>,
     });
   }
 
   table(this: CreateTableBuilder<TState & { table?: never }>, name: string) {
     return this.clone({
       ...this.#actual,
-      table: name,
+      table: snakeCase(name) as SnakeCase<typeof name>,
     });
   }
 
@@ -63,42 +53,72 @@ export class CreateTableBuilder<
     });
   }
 
-  columns<const C extends Schema>(
+  schema<const C extends Schema>(
     this: CreateTableBuilder<TState & { columns?: never }>,
     columns: C,
   ) {
-    return this.clone({ ...this.#actual, columns });
+    const schema = Object.entries(columns).reduce(
+      (prev, [key, value]) => ({ ...prev, [snakeCase(key)]: value }),
+      {},
+    ) as SnakeCasedProperties<C>;
+    return this.clone({ ...this.#actual, columns: schema });
   }
 
+  // Overload 1: Single partition key
   primaryKey<
     const PK extends keyof TState["columns"],
-    const CK extends (keyof TState["columns"])[],
+    const CK extends readonly (keyof TState["columns"])[],
+  >(
+    this: CreateTableBuilder<
+      { partitionKeys?: never; clusteringKeys?: never } & TState
+    >,
+    partitionKey: PK,
+    ...clusteringKeys: CK
+  ): CreateTableBuilder<
+    TState & {
+      partitionKeys: readonly [PK];
+      clusteringKeys: CK;
+    }
+  >;
+
+  // Overload 2: Array of partition keys
+  primaryKey<
+    const PK extends readonly (keyof TState["columns"])[],
+    const CK extends readonly (keyof TState["columns"])[],
   >(
     this: CreateTableBuilder<{ primaryKey?: never } & TState>,
-    partitionKey: PK | PK[],
+    partitionKey: PK,
     ...clusteringKeys: CK
-  ) {
-    return this.clone<
-      Exclude<TState, "primaryKey"> & {
-        primaryKey: [PK | PK[], ...CK];
-      }
-    >({
+  ): CreateTableBuilder<
+    TState & {
+      partitionKeys: PK;
+      clusteringKeys: CK;
+    }
+  >;
+
+  // Implementation signature
+  // eslint-disable-next-line
+  primaryKey(partitionKey: any, ...clusteringKeys: any[]): any {
+    return this.clone({
       ...this.#actual,
-      primaryKey: [partitionKey, ...clusteringKeys] as const,
+      partitionKeys: Array.isArray(partitionKey)
+        ? partitionKey
+        : [partitionKey],
+      clusteringKeys: clusteringKeys,
     });
   }
 
-  clusteringOrderBy<
-    PK extends string | readonly string[],
-    CK extends readonly string[],
-  >(
+  clusteringOrderBy<PK extends readonly string[], CK extends readonly string[]>(
     this: CreateTableBuilder<
       TState & {
-        primaryKey: [PK, ...CK];
+        partitionKeys: PK;
+        clusteringKeys: CK;
         clusteringOrderBy?: never;
       }
     >,
-    options: Partial<Record<CK[number], "asc" | "desc">>,
+    options: CK extends readonly []
+      ? never
+      : Partial<Record<CK[number], "asc" | "desc">>,
   ) {
     return this.clone({
       ...this.#actual,
@@ -136,12 +156,11 @@ export class CreateTableBuilder<
     return "WITH " + parts.join(" AND ");
   }
 
-  private assembleSchema(
-    this: CreateTableBuilder<
-      TState & { columns: Schema; primaryKey: [string | string[], ...string[]] }
-    >,
-  ) {
-    const primaryKey = [...this.#actual.primaryKey];
+  private assembleSchema(this: CreateTableBuilder<TState & TableContext>) {
+    const primaryKey = [
+      this.#actual.partitionKeys,
+      ...this.#actual.clusteringKeys,
+    ];
 
     // Format the partition key to make it ready
     // to be joined along with the clustering keys
@@ -156,15 +175,7 @@ export class CreateTableBuilder<
     return `(\n${columns.join(",\n")} PRIMARY KEY ( ${primaryKey.join(", ")} )\n)`;
   }
 
-  build(
-    this: CreateTableBuilder<
-      TState & {
-        table: string;
-        columns: Schema;
-        primaryKey: [string | string[], ...string[]];
-      }
-    >,
-  ) {
+  protected buildCQL(this: CreateTableBuilder<TState & TableContext>) {
     const parts = ["CREATE", "TABLE"];
 
     if (!this.#actual.table) throw new Error("Table is required");
@@ -178,8 +189,8 @@ export class CreateTableBuilder<
     if (!this.#actual.columns)
       throw new Error("Missing required columns schema");
 
-    if (!this.#actual.primaryKey)
-      throw new Error("Missing required primary key");
+    if (!this.#actual.partitionKeys)
+      throw new Error("Missing required partition key[s]");
 
     const formattedSchema = this.assembleSchema();
 
@@ -198,8 +209,16 @@ export class CreateTableBuilder<
       parts.push(formattedWithOptions);
     }
 
-    const cql = parts.join(" ") + ";";
+    return parts.join(" ") + ";";
+  }
 
-    return { cql, context: this.#actual };
+  build<T extends TState & TableContext>(this: CreateTableBuilder<T>) {
+    const cql = this.buildCQL();
+
+    return CreateTableContext.create<T>(this.client, cql, this.#actual);
+  }
+
+  toCQL(this: CreateTableBuilder<TState & TableContext>): string {
+    return this.buildCQL();
   }
 }

@@ -1,3 +1,4 @@
+import { snakeCase } from "change-case";
 import {
   CqlType,
   FrozenMeta,
@@ -9,6 +10,7 @@ import {
   UdtMeta,
   ValidMapKey,
 } from "./types";
+import type { SnakeCasedProperties } from "type-fest";
 
 // eslint-disable-next-line
 export function list<E extends CqlType<any, any, any>>(element: E) {
@@ -17,6 +19,10 @@ export function list<E extends CqlType<any, any, any>>(element: E) {
     _meta: {
       kind: "list" as const,
       ts: undefined as unknown as Array<InferTs<E>>,
+      operators: {
+        partition: null,
+        clustering: ["=", "<", ">", "<=", ">=", "in", "contains"],
+      } as const,
     },
   } satisfies CqlType<Array<InferTs<E>>, "list", ListMeta<E>>;
 }
@@ -28,6 +34,10 @@ export function set<E extends CqlType<any, any, any>>(element: E) {
     _meta: {
       kind: "set" as const,
       ts: undefined as unknown as Array<InferTs<E>>,
+      operators: {
+        partition: null,
+        clustering: ["=", "<", ">", "<=", ">=", "in", "contains"],
+      } as const,
     },
   } satisfies CqlType<Array<InferTs<E>>, "set", SetMeta<E>>;
 }
@@ -44,6 +54,10 @@ export function map<
       ts: undefined as unknown as Map<InferTs<K>, InferTs<V>>,
       key: undefined as unknown as InferTs<K>,
       value: undefined as unknown as InferTs<V>,
+      operators: {
+        partition: null,
+        clustering: ["=", "<", ">", "<=", ">=", "in", "contains"],
+      } as const,
     },
   } satisfies CqlType<Map<InferTs<K>, InferTs<V>>, "map", MapMeta<K, V>>;
 }
@@ -60,6 +74,10 @@ export function tuple<E extends readonly CqlType<any, any, any>[]>(
         [K in keyof E]: InferTs<E[K]>;
       },
       elements,
+      operators: {
+        partition: null,
+        clustering: ["=", "<", ">", "<=", ">=", "in", "contains"],
+      } as const,
     },
   } satisfies CqlType<{ [K in keyof E]: InferTs<E[K]> }, "tuple", TupleMeta<E>>;
 }
@@ -69,20 +87,27 @@ export function udt<Schema extends Record<string, CqlType<any, any, any>>>(
   name: string,
   schema: Schema,
 ) {
+  type SnakeCasedSchema = SnakeCasedProperties<Schema>;
+
+  const snakeCasedSchema = Object.entries(schema).reduce(
+    (prev, [key, value]) => ({ ...prev, [snakeCase(key)]: value }),
+    {},
+  ) as SnakeCasedSchema;
+
   return {
     cql: name,
     _meta: {
       kind: "udt" as const,
       ts: undefined as unknown as {
-        [K in keyof Schema]: InferTs<Schema[K]>;
+        [K in keyof SnakeCasedSchema]: InferTs<SnakeCasedSchema[K]>;
       },
       name,
-      schema,
+      schema: snakeCasedSchema,
     },
   } satisfies CqlType<
-    { [K in keyof Schema]: InferTs<Schema[K]> },
+    { [K in keyof SnakeCasedSchema]: InferTs<SnakeCasedSchema[K]> },
     "udt",
-    UdtMeta<Schema>
+    UdtMeta<SnakeCasedSchema>
   >;
 }
 
@@ -94,6 +119,10 @@ export function frozen<E extends CqlType<any, any, any>>(element: E) {
       kind: "frozen" as const,
       ts: undefined as unknown as InferTs<E>,
       element,
+      operators: {
+        partition: ["=", "in"],
+        clustering: ["=", "<", ">", "<=", ">=", "in", "not contains"],
+      } as const,
     },
   } satisfies CqlType<InferTs<E>, "frozen", FrozenMeta<E>>;
 }

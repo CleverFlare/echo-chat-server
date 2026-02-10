@@ -7,13 +7,12 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest",
     "dev": "nodemon -q --ext ts --exec tsx src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "migrate": "tsx src/schema-init.ts",
-    "test:types": "tsd",
-    "test": "vitest"
+    "test:types": "tsd"
   },
   "dependencies": {
     "@stdlib/string-pascalcase": "^0.2.2",
@@ -46,6 +45,7 @@
     "speakeasy": "^2.0.0",
     "stringify-object": "^5.0.0",
     "tsx": "^4.19.4",
+    "type-fest": "^5.4.3",
     "ws": "^8.18.2",
     "zod": "^3.25.23"
   },
