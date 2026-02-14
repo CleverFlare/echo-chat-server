@@ -286,6 +286,7 @@ describe("CreateTypeBuilder", () => {
         value: cql.scalar.text,
       });
 
+      // @ts-expect-error Don't worry about it
       expect(() => builder.toCQL()).toThrow("Type name is required");
     });
 

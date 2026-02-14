@@ -1,9 +1,11 @@
 import { Client } from "cassandra-driver";
 import { TableContext } from "@/cql/types";
 import { SelectBuilder } from "../select/builder";
+import { DropTableBuilder } from "../drop-table/builder";
 
 export class CreateTableContext<TContext extends TableContext> {
   select;
+  drop;
 
   protected constructor(
     private client: Client,
@@ -13,11 +15,24 @@ export class CreateTableContext<TContext extends TableContext> {
     this.context = context;
 
     const selectBinding = SelectBuilder.from(
-      this.client,
+      client,
       this as CreateTableContext<TContext>,
     );
 
     this.select = selectBinding.select.bind(selectBinding);
+
+    const dropBinding = DropTableBuilder.create(client)
+      .table(context.table)
+      .ifExists();
+
+    if (context.keyspace) dropBinding.keyspace(context.keyspace);
+
+    this.drop = () =>
+      dropBinding as DropTableBuilder<{
+        keyspace: TContext["keyspace"];
+        table: TContext["table"];
+        ifExists: true;
+      }>;
   }
 
   getContext() {

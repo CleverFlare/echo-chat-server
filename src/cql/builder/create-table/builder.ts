@@ -177,7 +177,7 @@ export class CreateTableBuilder<TState extends CreateTableBuilderInput> {
     return `(${columns.join(", ")}, PRIMARY KEY ( ${primaryKey.join(", ")} ))`;
   }
 
-  protected buildCQL() {
+  private buildCQL(this: CreateTableBuilder<TState & TableContext>) {
     const parts = ["CREATE", "TABLE"];
 
     if (this.#actual.keyspace && this.#actual.table)
@@ -186,12 +186,9 @@ export class CreateTableBuilder<TState extends CreateTableBuilderInput> {
 
     if (this.#actual.ifNotExists) parts.push("IF NOT EXISTS");
 
-    if (this.#actual.columns && this.#actual.partitionKeys) {
-      // @ts-expect-error Conditionally using assembleSchema
-      const formattedSchema = this.assembleSchema();
+    const formattedSchema = this.assembleSchema();
 
-      parts.push(formattedSchema);
-    }
+    parts.push(formattedSchema);
 
     if (this.#actual.clusteringOrderBy || this.#actual.withOptions) {
       const formattedWithOptions = (
@@ -215,7 +212,7 @@ export class CreateTableBuilder<TState extends CreateTableBuilderInput> {
     return CreateTableContext.create<T>(this.client, cql, this.#actual);
   }
 
-  toCQL(): string {
+  toCQL(this: CreateTableBuilder<TState & TableContext>): string {
     return this.buildCQL();
   }
 }

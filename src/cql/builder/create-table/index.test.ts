@@ -21,7 +21,10 @@ describe("CreateTableBuilder", () => {
     it("should set the keyspace name", () => {
       const builder = CreateTableBuilder.create(mockClient)
         .keyspace("MyKeyspace")
-        .table("myTable");
+        .table("myTable")
+        .schema({ column: cql.scalar.int })
+        .primaryKey("column");
+
       expect(builder.toCQL()).toContain("my_keyspace");
     });
 
@@ -61,7 +64,9 @@ describe("CreateTableBuilder", () => {
       const builder = CreateTableBuilder.create(mockClient)
         .keyspace("my_keyspace")
         .table("my_table")
-        .ifNotExists(true);
+        .ifNotExists(true)
+        .schema({ column: cql.scalar.int })
+        .primaryKey("column");
 
       expect(builder.toCQL()).toContain("IF NOT EXISTS");
     });
@@ -70,7 +75,9 @@ describe("CreateTableBuilder", () => {
       const builder = CreateTableBuilder.create(mockClient)
         .keyspace("my_keyspace")
         .table("my_table")
-        .ifNotExists();
+        .ifNotExists()
+        .schema({ column: cql.scalar.int })
+        .primaryKey("column");
 
       expect(builder.toCQL()).toContain("IF NOT EXISTS");
     });
@@ -79,7 +86,9 @@ describe("CreateTableBuilder", () => {
       const builder = CreateTableBuilder.create(mockClient)
         .keyspace("my_keyspace")
         .table("my_table")
-        .ifNotExists(false);
+        .ifNotExists(false)
+        .schema({ column: cql.scalar.int })
+        .primaryKey("column");
 
       expect(builder.toCQL()).not.toContain("IF NOT EXISTS");
     });
@@ -535,7 +544,11 @@ describe("CreateTableBuilder", () => {
     });
 
     it("should maintain immutability through cloning", () => {
-      const base = CreateTableBuilder.create(mockClient).table("users");
+      const base = CreateTableBuilder.create(mockClient)
+        .table("users")
+        .schema({ column: cql.scalar.int })
+        .primaryKey("column");
+
       const withKeyspace = base.keyspace("test");
 
       // Base should not have keyspace in its CQL

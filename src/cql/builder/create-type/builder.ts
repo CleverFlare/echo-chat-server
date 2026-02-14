@@ -69,7 +69,7 @@ export class CreateTypeBuilder<
     return `(\n${columns.join(",\n")})`;
   }
 
-  private buildCQL() {
+  private buildCQL(this: CreateTypeBuilder<TState & CreateTypeBuilderInput>) {
     const parts = ["CREATE", "TYPE"];
 
     if (!this.#actual.type) throw new Error("Type name is required");
@@ -80,12 +80,9 @@ export class CreateTypeBuilder<
 
     if (this.#actual.ifNotExists) parts.push("IF NOT EXISTS");
 
-    if (this.#actual.schema) {
-      // @ts-expect-error Conditionally using assembleSchema
-      const formattedSchema = this.assembleSchema();
+    const formattedSchema = this.assembleSchema();
 
-      parts.push(formattedSchema);
-    }
+    parts.push(formattedSchema);
 
     return parts.join(" ") + ";";
   }
@@ -95,7 +92,7 @@ export class CreateTypeBuilder<
     return CreateTypeContext.create<T>(this.client, cql, this.#actual);
   }
 
-  toCQL() {
+  toCQL(this: CreateTypeBuilder<TState & CreateTypeBuilderInput>) {
     return this.buildCQL();
   }
 }
