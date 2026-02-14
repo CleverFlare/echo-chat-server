@@ -9,7 +9,7 @@ export class SelectContext<
   protected constructor(
     private client: Client,
     private statement: string,
-    public context: { select: TSContext; table: TTContext },
+    public readonly context: { select: TSContext; table: TTContext },
   ) {}
 
   static create<

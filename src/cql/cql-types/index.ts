@@ -1,4 +1,4 @@
-import { frozen, list, map, set, tuple, udt } from "./collection";
+import { frozen, list, map, set, tuple } from "./collection";
 import { types } from "./scalar";
 
 export const cql = {
@@ -8,5 +8,4 @@ export const cql = {
   set,
   frozen,
   tuple,
-  udt,
 };

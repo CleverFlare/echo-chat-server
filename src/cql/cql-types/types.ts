@@ -1,3 +1,5 @@
+// Counter fields are not supported.
+
 export type CqlKind =
   | "scalar"
   | "list"

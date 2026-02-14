@@ -1,5 +1,6 @@
 import { Client, DseClientOptions } from "cassandra-driver";
 import { CreateTableBuilder } from "./create-table/builder";
+import { CreateTypeBuilder } from "./create-type/builder";
 
 export class CQL {
   public client: Client;
@@ -21,9 +22,11 @@ export class CQL {
   }
 
   create() {
-    const tableBuilder = CreateTableBuilder.create();
+    const tableBuilder = CreateTableBuilder.create(this.client);
+    const typeBuilder = CreateTypeBuilder.create(this.client);
     return {
       table: tableBuilder.table.bind(tableBuilder),
+      type: typeBuilder.type.bind(typeBuilder),
     };
   }
 }

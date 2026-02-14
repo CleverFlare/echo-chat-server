@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { types } from "./scalar";
-import { list, map, tuple, udt, frozen, set } from "./collection";
+import { list, map, tuple, frozen, set } from "./collection";
 
 describe("CQL generation", () => {
   it("generates list CQL", () => {
@@ -17,15 +17,6 @@ describe("CQL generation", () => {
 
   it("generates tuple CQL", () => {
     expect(tuple(types.text, types.int).cql).toBe("TUPLE<TEXT, INT>");
-  });
-
-  it("generates udt CQL", () => {
-    const user = udt("user", {
-      id: types.uuid,
-      name: types.text,
-    });
-
-    expect(user.cql).toBe("user");
   });
 
   it("generates frozen CQL", () => {

@@ -69,11 +69,6 @@ export class SelectBuilder<
     }) as any;
   }
 
-  testSelect(
-    this: SelectBuilder<TState & { columns: SelectInput["columns"] }, TContext>,
-    columns: TState["columns"],
-  ) {}
-
   where<
     const C extends
       | TContext["partitionKeys"][number]

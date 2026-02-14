@@ -142,7 +142,8 @@ export class CreateTableBuilder<TState extends CreateTableBuilderInput> {
   ) {
     const parts = [];
 
-    const assembled = this.#actual.withOptions.map((option) => option.cql);
+    const assembled =
+      this.#actual.withOptions?.map((option) => option.cql) ?? [];
 
     if (this.#actual.clusteringOrderBy) {
       const clusteringOrder = Object.entries(this.#actual.clusteringOrderBy);
@@ -164,37 +165,33 @@ export class CreateTableBuilder<TState extends CreateTableBuilderInput> {
 
     // Format the partition key to make it ready
     // to be joined along with the clustering keys
-    primaryKey[0] = Array.isArray(primaryKey[0])
-      ? `(${primaryKey[0].join(", ")})`
-      : primaryKey.toString();
+    primaryKey[0] =
+      Array.isArray(primaryKey[0]) && primaryKey[0].length > 1
+        ? `(${primaryKey[0].join(", ")})`
+        : primaryKey[0].toString();
 
     const columns = Object.entries(this.#actual.columns).map(
       ([key, value]) => `${key} ${value.cql}`,
     );
 
-    return `(\n${columns.join(",\n")} PRIMARY KEY ( ${primaryKey.join(", ")} )\n)`;
+    return `(${columns.join(", ")}, PRIMARY KEY ( ${primaryKey.join(", ")} ))`;
   }
 
-  protected buildCQL(this: CreateTableBuilder<TState & TableContext>) {
+  protected buildCQL() {
     const parts = ["CREATE", "TABLE"];
 
-    if (!this.#actual.table) throw new Error("Table is required");
-
-    if (this.#actual.keyspace)
+    if (this.#actual.keyspace && this.#actual.table)
       parts.push(`${this.#actual.keyspace}.${this.#actual.table}`);
-    else parts.push(this.#actual.table);
+    else if (this.#actual.table) parts.push(this.#actual.table);
 
     if (this.#actual.ifNotExists) parts.push("IF NOT EXISTS");
 
-    if (!this.#actual.columns)
-      throw new Error("Missing required columns schema");
+    if (this.#actual.columns && this.#actual.partitionKeys) {
+      // @ts-expect-error Conditionally using assembleSchema
+      const formattedSchema = this.assembleSchema();
 
-    if (!this.#actual.partitionKeys)
-      throw new Error("Missing required partition key[s]");
-
-    const formattedSchema = this.assembleSchema();
-
-    parts.push(formattedSchema);
+      parts.push(formattedSchema);
+    }
 
     if (this.#actual.clusteringOrderBy || this.#actual.withOptions) {
       const formattedWithOptions = (
@@ -218,7 +215,7 @@ export class CreateTableBuilder<TState extends CreateTableBuilderInput> {
     return CreateTableContext.create<T>(this.client, cql, this.#actual);
   }
 
-  toCQL(this: CreateTableBuilder<TState & TableContext>): string {
+  toCQL(): string {
     return this.buildCQL();
   }
 }

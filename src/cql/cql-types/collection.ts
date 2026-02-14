@@ -83,35 +83,6 @@ export function tuple<E extends readonly CqlType<any, any, any>[]>(
 }
 
 // eslint-disable-next-line
-export function udt<Schema extends Record<string, CqlType<any, any, any>>>(
-  name: string,
-  schema: Schema,
-) {
-  type SnakeCasedSchema = SnakeCasedProperties<Schema>;
-
-  const snakeCasedSchema = Object.entries(schema).reduce(
-    (prev, [key, value]) => ({ ...prev, [snakeCase(key)]: value }),
-    {},
-  ) as SnakeCasedSchema;
-
-  return {
-    cql: name,
-    _meta: {
-      kind: "udt" as const,
-      ts: undefined as unknown as {
-        [K in keyof SnakeCasedSchema]: InferTs<SnakeCasedSchema[K]>;
-      },
-      name,
-      schema: snakeCasedSchema,
-    },
-  } satisfies CqlType<
-    { [K in keyof SnakeCasedSchema]: InferTs<SnakeCasedSchema[K]> },
-    "udt",
-    UdtMeta<SnakeCasedSchema>
-  >;
-}
-
-// eslint-disable-next-line
 export function frozen<E extends CqlType<any, any, any>>(element: E) {
   return {
     cql: `FROZEN<${element.cql}>`,
