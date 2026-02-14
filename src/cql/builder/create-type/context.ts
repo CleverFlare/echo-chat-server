@@ -2,13 +2,29 @@ import { Client } from "cassandra-driver";
 import { CreateTypeBuilderInput } from "./types";
 import { InferTs } from "@/cql/with-options/types";
 import { CqlType, UdtMeta } from "@/cql/cql-types/types";
+import { DropTypeBuilder } from "../drop-type/builder";
 
 export class CreateTypeContext<TContext extends CreateTypeBuilderInput> {
+  drop;
+
   protected constructor(
     private client: Client,
     private statement: string,
     public readonly context: TContext,
-  ) {}
+  ) {
+    const dropBinding = DropTypeBuilder.create(client)
+      .type(context.type)
+      .ifExists();
+
+    if (context.keyspace) dropBinding.keyspace(context.keyspace);
+
+    this.drop = () =>
+      dropBinding as DropTypeBuilder<{
+        type: TContext["type"];
+        keyspace: TContext["keyspace"];
+        ifExists: true;
+      }>;
+  }
 
   static create<T extends CreateTypeBuilderInput>(
     client: Client,
