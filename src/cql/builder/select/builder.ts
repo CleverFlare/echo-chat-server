@@ -57,7 +57,7 @@ export class SelectBuilder<
     if (first === undefined || first === "*") {
       return this.clone({
         ...this.#actual,
-        columns: Object.keys(this.#context.columns),
+        columns: "*",
         // eslint-disable-next-line
       }) as any;
     }
@@ -94,7 +94,7 @@ export class SelectBuilder<
   private assembleColumns(
     this: SelectBuilder<TState & { columns: SelectInput["columns"] }, TContext>,
   ) {
-    if (this.#actual.columns[0] === "*") {
+    if ((this.#actual.columns as readonly string[] | "*") === "*") {
       return "*";
     }
 

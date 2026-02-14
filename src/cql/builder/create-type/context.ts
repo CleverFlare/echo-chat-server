@@ -4,22 +4,22 @@ import { InferTs } from "@/cql/with-options/types";
 import { CqlType, UdtMeta } from "@/cql/cql-types/types";
 
 export class CreateTypeContext<TContext extends CreateTypeBuilderInput> {
-  readonly context: TContext;
-
   protected constructor(
     private client: Client,
     private statement: string,
-    context: TContext,
-  ) {
-    this.context = context;
-  }
+    public readonly context: TContext,
+  ) {}
 
   static create<T extends CreateTypeBuilderInput>(
     client: Client,
     statement: string,
     context: T,
   ): CreateTypeContext<T> {
-    return new CreateTypeContext(client, statement, context);
+    return new CreateTypeContext<T>(client, statement, context);
+  }
+
+  getContext() {
+    return this.context;
   }
 
   toCQL() {

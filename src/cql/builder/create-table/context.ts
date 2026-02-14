@@ -4,14 +4,13 @@ import { SelectBuilder } from "../select/builder";
 
 export class CreateTableContext<TContext extends TableContext> {
   select;
-  readonly #context: TContext;
 
   protected constructor(
     private client: Client,
     private statement: string,
-    context: TContext,
+    public readonly context: TContext,
   ) {
-    this.#context = context;
+    this.context = context;
 
     const selectBinding = SelectBuilder.from(
       this.client,
@@ -22,7 +21,7 @@ export class CreateTableContext<TContext extends TableContext> {
   }
 
   getContext() {
-    return this.#context;
+    return this.context;
   }
 
   static create<T extends TableContext>(
