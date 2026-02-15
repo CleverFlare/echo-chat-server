@@ -32,7 +32,7 @@ export class InsertBuilder<
     return new InsertBuilder(this.client, actual, this.#context);
   }
 
-  values<V extends InsertValues<TContext>>(
+  insert<V extends InsertValues<TContext>>(
     this: InsertBuilder<TState & { values?: never }, TContext>,
     values: V,
   ): InsertBuilder<TState & { values: V }, TContext> {

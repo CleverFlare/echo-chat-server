@@ -20,6 +20,10 @@ export class DropTableContext<TContext extends DropTableBuilderInput> {
     return new DropTableContext(client, statement, context);
   }
 
+  getContext() {
+    return this.#context;
+  }
+
   toCQL() {
     return this.statement;
   }

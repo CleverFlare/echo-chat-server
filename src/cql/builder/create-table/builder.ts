@@ -26,37 +26,46 @@ export class CreateTableBuilder<TState extends CreateTableBuilderInput> {
     return new CreateTableBuilder(this.client, actual);
   }
 
-  keyspace(
-    this: CreateTableBuilder<TState & { keyspace?: never }>,
-    name: string,
-  ) {
+  keyspace<const Keyspace extends string>(
+    name: Keyspace,
+  ): CreateTableBuilder<TState & { keyspace: SnakeCase<Keyspace> }> {
     return this.clone({
       ...this.#actual,
-      keyspace: snakeCase(name) as SnakeCase<typeof name>,
+      keyspace: snakeCase(name) as SnakeCase<Keyspace>,
     });
   }
 
-  table(this: CreateTableBuilder<TState & { table?: never }>, name: string) {
+  table<const Table extends string>(
+    name: Table,
+  ): CreateTableBuilder<TState & { table: SnakeCase<Table> }> {
     return this.clone({
       ...this.#actual,
-      table: snakeCase(name) as SnakeCase<typeof name>,
+      table: snakeCase(name) as SnakeCase<Table>,
     });
   }
+
+  // Overloads for all cases
+  ifNotExists(): CreateTableBuilder<TState & { ifNotExists: true }>;
+
+  ifNotExists(option: true): CreateTableBuilder<TState & { ifNotExists: true }>;
 
   ifNotExists(
-    this: CreateTableBuilder<TState & { ifNotExists?: never }>,
-    option?: boolean,
-  ) {
+    option: false,
+  ): CreateTableBuilder<TState & { ifNotExists: false }>;
+
+  ifNotExists(
+    option: boolean,
+  ): CreateTableBuilder<TState & { ifNotExists: boolean }>;
+
+  // Single implementation
+  ifNotExists(option?: boolean) {
     return this.clone({
       ...this.#actual,
       ifNotExists: option ?? true,
     });
   }
 
-  schema<const C extends Schema>(
-    this: CreateTableBuilder<TState & { columns?: never }>,
-    columns: C,
-  ) {
+  schema<const C extends Schema>(columns: C) {
     const schema = Object.entries(columns).reduce(
       (prev, [key, value]) => ({ ...prev, [snakeCase(key)]: value }),
       {},
@@ -69,9 +78,7 @@ export class CreateTableBuilder<TState extends CreateTableBuilderInput> {
     const PK extends keyof TState["columns"],
     const CK extends readonly (keyof TState["columns"])[],
   >(
-    this: CreateTableBuilder<
-      { partitionKeys?: never; clusteringKeys?: never } & TState
-    >,
+    this: CreateTableBuilder<{ columns: TableContext["columns"] } & TState>,
     partitionKey: PK,
     ...clusteringKeys: CK
   ): CreateTableBuilder<
@@ -86,7 +93,7 @@ export class CreateTableBuilder<TState extends CreateTableBuilderInput> {
     const PK extends readonly (keyof TState["columns"])[],
     const CK extends readonly (keyof TState["columns"])[],
   >(
-    this: CreateTableBuilder<{ primaryKey?: never } & TState>,
+    this: CreateTableBuilder<{ columns: TableContext["columns"] } & TState>,
     partitionKey: PK,
     ...clusteringKeys: CK
   ): CreateTableBuilder<
@@ -127,11 +134,24 @@ export class CreateTableBuilder<TState extends CreateTableBuilderInput> {
   }
 
   // eslint-disable-next-line
-  with(...options: WithOption<any, any, any>[]) {
+  with<const Options extends readonly WithOption<any, any, any>[]>(
+    ...options: Options
+  ) {
+    type ExistingOptions = TState extends {
+      // eslint-disable-next-line
+      withOptions: infer W extends readonly WithOption<any, any, any>[];
+    }
+      ? W
+      : [];
+
+    type NewOptions = readonly [...ExistingOptions, ...Options];
+
     return this.clone({
       ...this.#actual,
       withOptions: [...(this.#actual.withOptions ?? []), ...options],
-    });
+    }) as unknown as CreateTableBuilder<
+      Omit<TState, "withOptions"> & { withOptions: NewOptions }
+    >;
   }
 
   private assembleWithOptions(
@@ -180,9 +200,9 @@ export class CreateTableBuilder<TState extends CreateTableBuilderInput> {
   private buildCQL(this: CreateTableBuilder<TState & TableContext>) {
     const parts = ["CREATE", "TABLE"];
 
-    if (this.#actual.keyspace && this.#actual.table)
+    if (this.#actual.keyspace)
       parts.push(`${this.#actual.keyspace}.${this.#actual.table}`);
-    else if (this.#actual.table) parts.push(this.#actual.table);
+    else parts.push(this.#actual.table);
 
     if (this.#actual.ifNotExists) parts.push("IF NOT EXISTS");
 

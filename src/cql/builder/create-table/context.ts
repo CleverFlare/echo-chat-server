@@ -3,6 +3,7 @@ import { TableContext } from "@/cql/types";
 import { SelectBuilder } from "../select/builder";
 import { DropTableBuilder } from "../drop-table/builder";
 import { InsertBuilder } from "../insert/builder";
+import { wrapMethod } from "../../utils/wrap-method";
 
 export class CreateTableContext<TContext extends TableContext> {
   select;
@@ -21,31 +22,33 @@ export class CreateTableContext<TContext extends TableContext> {
       this as CreateTableContext<TContext>,
     );
 
-    this.select = selectBinding.select.bind(selectBinding);
+    this.select = wrapMethod(selectBinding, selectBinding.select);
 
-    const dropBinding = DropTableBuilder.create(client)
-      .table(context.table)
-      .ifExists();
+    this.drop = (): DropTableBuilder<{
+      keyspace?: TContext["keyspace"] extends unknown
+        ? undefined
+        : TContext["keyspace"];
+      table: TContext["table"];
+      ifExists: true;
+    }> => {
+      const dropBinding = DropTableBuilder.create(client)
+        .table(context.table)
+        .ifExists();
 
-    if (context.keyspace) dropBinding.keyspace(context.keyspace);
+      if (context.keyspace)
+        // eslint-disable-next-line
+        return dropBinding.keyspace(context.keyspace) as any;
 
-    this.drop = () =>
-      dropBinding as DropTableBuilder<{
-        keyspace: TContext["keyspace"];
-        table: TContext["table"];
-        ifExists: true;
-      }>;
+      // eslint-disable-next-line
+      return dropBinding as any;
+    };
 
     const insertBinding = InsertBuilder.into(
       client,
       this as CreateTableContext<TContext>,
     );
 
-    this.insert = insertBinding.values.bind(insertBinding);
-  }
-
-  getContext() {
-    return this.context;
+    this.insert = wrapMethod(insertBinding, insertBinding.insert);
   }
 
   static create<T extends TableContext>(

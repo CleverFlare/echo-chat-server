@@ -1,9 +1,10 @@
 import { Client } from "cassandra-driver";
 import { snakeCase } from "change-case";
-import { SnakeCasedProperties } from "type-fest";
+import { SnakeCase, SnakeCasedProperties } from "type-fest";
 import { CreateTypeBuilderInput } from "./types";
 import { CreateTypeContext } from "./context";
 import { Schema } from "@/cql/types";
+import { CreateTableContext } from "../create-table/context";
 
 export class CreateTypeBuilder<
   const TState extends Partial<CreateTypeBuilderInput>,
@@ -27,22 +28,45 @@ export class CreateTypeBuilder<
     return new CreateTypeBuilder(this.client, actual);
   }
 
-  keyspace(
+  keyspace<const Keyspace extends string>(
     this: CreateTypeBuilder<TState & { keyspace?: never }>,
-    name: string,
-  ) {
-    return this.clone({ ...this.#actual, keyspace: name });
+    name: Keyspace,
+  ): CreateTypeBuilder<TState & { keyspace: SnakeCase<Keyspace> }> {
+    return this.clone({
+      ...this.#actual,
+      keyspace: snakeCase(name) as SnakeCase<Keyspace>,
+    });
   }
 
-  type(this: CreateTypeBuilder<TState & { type?: never }>, name: string) {
-    return this.clone({ ...this.#actual, type: name });
+  type<const Type extends string>(
+    this: CreateTypeBuilder<TState & { type?: never }>,
+    name: Type,
+  ): CreateTypeBuilder<TState & { type: SnakeCase<Type> }> {
+    return this.clone({
+      ...this.#actual,
+      type: snakeCase(name) as SnakeCase<Type>,
+    });
   }
+
+  // Overloads for all cases
+  ifNotExists(): CreateTypeBuilder<TState & { ifNotExists: true }>;
+
+  ifNotExists(option: true): CreateTypeBuilder<TState & { ifNotExists: true }>;
 
   ifNotExists(
-    this: CreateTypeBuilder<TState & { ifNotExists?: never }>,
-    option?: boolean,
-  ) {
-    return this.clone({ ...this.#actual, ifNotExists: option ?? true });
+    option: false,
+  ): CreateTypeBuilder<TState & { ifNotExists: false }>;
+
+  ifNotExists(
+    option: boolean,
+  ): CreateTypeBuilder<TState & { ifNotExists: boolean }>;
+
+  // Single implementation
+  ifNotExists(option?: boolean) {
+    return this.clone({
+      ...this.#actual,
+      ifNotExists: option ?? true,
+    });
   }
 
   schema<const T extends Schema>(

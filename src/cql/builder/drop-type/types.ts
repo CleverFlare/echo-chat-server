@@ -1,5 +1,5 @@
-export interface DropTypeBuilderInput {
+export type DropTypeBuilderInput = {
   keyspace?: string;
   type: string;
   ifExists?: boolean;
-}
+};

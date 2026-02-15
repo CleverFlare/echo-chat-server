@@ -13,7 +13,7 @@ export type TableContext = {
   clusteringKeys: readonly string[];
   clusteringOrderBy?: Record<string, "asc" | "desc">;
   // eslint-disable-next-line
-  withOptions?: WithOption<any, any, any>[];
+  withOptions?: readonly WithOption<any, any, any>[];
 };
 
 export type TablesCollection = Record<string, TableContext>;

@@ -6,8 +6,10 @@ export class InsertContext<
   TInsertContext extends InsertBuilderInput,
   TTableContext extends TableContext,
 > {
-  readonly #insertContext: TInsertContext;
-  readonly #tableContext: TTableContext;
+  readonly context: {
+    insert: TInsertContext;
+    table: TTableContext;
+  };
 
   protected constructor(
     private client: Client,
@@ -18,8 +20,7 @@ export class InsertContext<
       table: TTableContext;
     },
   ) {
-    this.#insertContext = context.insert;
-    this.#tableContext = context.table;
+    this.context = context;
   }
 
   static create<

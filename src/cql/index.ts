@@ -8,7 +8,7 @@ const db = new CQL({});
 
 const userByUsernameAndId = db
   .create()
-  .table("userByUsernameAndId")
+  .table("MyTable")
   .ifNotExists()
   .schema({
     id: cql.scalar.uuid,

@@ -42,7 +42,7 @@ describe("InsertBuilder", () => {
     });
   });
 
-  describe("values()", () => {
+  describe("insert()", () => {
     let usersTable: ReturnType<
       ReturnType<typeof CreateTableBuilder.create>["build"]
     >;
@@ -61,7 +61,7 @@ describe("InsertBuilder", () => {
     });
 
     it("should set values for insert", () => {
-      const builder = InsertBuilder.into(mockClient, usersTable).values({
+      const builder = InsertBuilder.into(mockClient, usersTable).insert({
         id: "123e4567-e89b-12d3-a456-426614174000",
         name: "Alice",
         email: "alice@example.com",
@@ -74,7 +74,7 @@ describe("InsertBuilder", () => {
     });
 
     it("should handle partial column insertion", () => {
-      const builder = InsertBuilder.into(mockClient, usersTable).values({
+      const builder = InsertBuilder.into(mockClient, usersTable).insert({
         id: "123e4567-e89b-12d3-a456-426614174000",
         name: "Bob",
       });
@@ -96,7 +96,7 @@ describe("InsertBuilder", () => {
         .primaryKey("user_id")
         .build();
 
-      const builder = InsertBuilder.into(mockClient, table).values({
+      const builder = InsertBuilder.into(mockClient, table).insert({
         user_id: "123e4567-e89b-12d3-a456-426614174000",
         event_type: "login",
         timestamp: new Date(),
@@ -108,7 +108,7 @@ describe("InsertBuilder", () => {
     });
 
     it("should generate correct number of placeholders", () => {
-      const builder = InsertBuilder.into(mockClient, usersTable).values({
+      const builder = InsertBuilder.into(mockClient, usersTable).insert({
         id: "123e4567-e89b-12d3-a456-426614174000",
         name: "Charlie",
         email: "charlie@example.com",
@@ -139,7 +139,7 @@ describe("InsertBuilder", () => {
 
     it("should add IF NOT EXISTS clause when true", () => {
       const builder = InsertBuilder.into(mockClient, usersTable)
-        .values({
+        .insert({
           id: "123e4567-e89b-12d3-a456-426614174000",
           name: "Alice",
         })
@@ -150,7 +150,7 @@ describe("InsertBuilder", () => {
 
     it("should add IF NOT EXISTS clause when called without arguments", () => {
       const builder = InsertBuilder.into(mockClient, usersTable)
-        .values({
+        .insert({
           id: "123e4567-e89b-12d3-a456-426614174000",
           name: "Bob",
         })
@@ -161,7 +161,7 @@ describe("InsertBuilder", () => {
 
     it("should not add IF NOT EXISTS clause when false", () => {
       const builder = InsertBuilder.into(mockClient, usersTable)
-        .values({
+        .insert({
           id: "123e4567-e89b-12d3-a456-426614174000",
           name: "Charlie",
         })
@@ -189,7 +189,7 @@ describe("InsertBuilder", () => {
 
     it("should add TTL option", () => {
       const builder = InsertBuilder.into(mockClient, usersTable)
-        .values({
+        .insert({
           id: "123e4567-e89b-12d3-a456-426614174000",
           token: "abc123",
         })
@@ -201,7 +201,7 @@ describe("InsertBuilder", () => {
 
     it("should handle zero TTL", () => {
       const builder = InsertBuilder.into(mockClient, usersTable)
-        .values({
+        .insert({
           id: "123e4567-e89b-12d3-a456-426614174000",
           token: "xyz789",
         })
@@ -213,7 +213,7 @@ describe("InsertBuilder", () => {
 
     it("should handle large TTL values", () => {
       const builder = InsertBuilder.into(mockClient, usersTable)
-        .values({
+        .insert({
           id: "123e4567-e89b-12d3-a456-426614174000",
           token: "token",
         })
@@ -243,7 +243,7 @@ describe("InsertBuilder", () => {
     it("should add TIMESTAMP option", () => {
       const timestamp = Date.now() * 1000; // Convert to microseconds
       const builder = InsertBuilder.into(mockClient, usersTable)
-        .values({
+        .insert({
           id: "123e4567-e89b-12d3-a456-426614174000",
           data: "test",
         })
@@ -256,7 +256,7 @@ describe("InsertBuilder", () => {
     it("should handle specific timestamp values", () => {
       const specificTime = 1234567890123456; // Microseconds
       const builder = InsertBuilder.into(mockClient, usersTable)
-        .values({
+        .insert({
           id: "123e4567-e89b-12d3-a456-426614174000",
           data: "historical",
         })
@@ -286,7 +286,7 @@ describe("InsertBuilder", () => {
     it("should combine TTL and TIMESTAMP", () => {
       const timestamp = Date.now() * 1000;
       const builder = InsertBuilder.into(mockClient, usersTable)
-        .values({
+        .insert({
           id: "123e4567-e89b-12d3-a456-426614174000",
           value: "test",
         })
@@ -299,7 +299,7 @@ describe("InsertBuilder", () => {
 
     it("should combine IF NOT EXISTS with TTL", () => {
       const builder = InsertBuilder.into(mockClient, usersTable)
-        .values({
+        .insert({
           id: "123e4567-e89b-12d3-a456-426614174000",
           value: "test",
         })
@@ -314,7 +314,7 @@ describe("InsertBuilder", () => {
     it("should combine all options", () => {
       const timestamp = Date.now() * 1000;
       const builder = InsertBuilder.into(mockClient, usersTable)
-        .values({
+        .insert({
           id: "123e4567-e89b-12d3-a456-426614174000",
           value: "complete",
         })
@@ -346,7 +346,7 @@ describe("InsertBuilder", () => {
     });
 
     it("should generate basic INSERT statement", () => {
-      const builder = InsertBuilder.into(mockClient, usersTable).values({
+      const builder = InsertBuilder.into(mockClient, usersTable).insert({
         id: "123e4567-e89b-12d3-a456-426614174000",
         name: "Alice",
         email: "alice@example.com",
@@ -370,7 +370,7 @@ describe("InsertBuilder", () => {
         .primaryKey("id")
         .build();
 
-      const builder = InsertBuilder.into(mockClient, table).values({
+      const builder = InsertBuilder.into(mockClient, table).insert({
         id: "123e4567-e89b-12d3-a456-426614174000",
         name: "Bob",
       });
@@ -380,7 +380,7 @@ describe("InsertBuilder", () => {
     });
 
     it("should list columns in parentheses", () => {
-      const builder = InsertBuilder.into(mockClient, usersTable).values({
+      const builder = InsertBuilder.into(mockClient, usersTable).insert({
         id: "123e4567-e89b-12d3-a456-426614174000",
         name: "Charlie",
       });
@@ -390,7 +390,7 @@ describe("InsertBuilder", () => {
     });
 
     it("should use placeholders for values", () => {
-      const builder = InsertBuilder.into(mockClient, usersTable).values({
+      const builder = InsertBuilder.into(mockClient, usersTable).insert({
         id: "123e4567-e89b-12d3-a456-426614174000",
         name: "Dave",
         email: "dave@example.com",
@@ -418,7 +418,7 @@ describe("InsertBuilder", () => {
     });
 
     it("should return an InsertContext instance", () => {
-      const builder = InsertBuilder.into(mockClient, usersTable).values({
+      const builder = InsertBuilder.into(mockClient, usersTable).insert({
         id: "123e4567-e89b-12d3-a456-426614174000",
         name: "Alice",
       });
@@ -428,7 +428,7 @@ describe("InsertBuilder", () => {
     });
 
     it("should generate the same CQL from context", () => {
-      const builder = InsertBuilder.into(mockClient, usersTable).values({
+      const builder = InsertBuilder.into(mockClient, usersTable).insert({
         id: "123e4567-e89b-12d3-a456-426614174000",
         name: "Bob",
       });
@@ -460,7 +460,7 @@ describe("InsertBuilder", () => {
 
     describe("execute()", () => {
       it("should execute the INSERT statement with prepared statement", async () => {
-        const builder = InsertBuilder.into(mockClient, usersTable).values({
+        const builder = InsertBuilder.into(mockClient, usersTable).insert({
           id: "123e4567-e89b-12d3-a456-426614174000",
           name: "Alice",
           email: "alice@example.com",
@@ -481,7 +481,7 @@ describe("InsertBuilder", () => {
       });
 
       it("should pass values in correct order", async () => {
-        const builder = InsertBuilder.into(mockClient, usersTable).values({
+        const builder = InsertBuilder.into(mockClient, usersTable).insert({
           id: "123e4567-e89b-12d3-a456-426614174000",
           name: "Bob",
         });
@@ -507,7 +507,7 @@ describe("InsertBuilder", () => {
           .primaryKey("id")
           .build();
 
-        const builder = InsertBuilder.into(errorClient, table).values({
+        const builder = InsertBuilder.into(errorClient, table).insert({
           id: "123e4567-e89b-12d3-a456-426614174000",
         });
 
@@ -519,7 +519,7 @@ describe("InsertBuilder", () => {
 
     describe("toCQL()", () => {
       it("should return the CQL statement", () => {
-        const builder = InsertBuilder.into(mockClient, usersTable).values({
+        const builder = InsertBuilder.into(mockClient, usersTable).insert({
           id: "123e4567-e89b-12d3-a456-426614174000",
           name: "Alice",
         });
@@ -552,7 +552,7 @@ describe("InsertBuilder", () => {
     it("should allow chaining all methods", () => {
       expect(() => {
         InsertBuilder.into(mockClient, usersTable)
-          .values({
+          .insert({
             id: "123e4567-e89b-12d3-a456-426614174000",
             name: "Alice",
           })
@@ -564,7 +564,7 @@ describe("InsertBuilder", () => {
     });
 
     it("should maintain immutability through cloning", () => {
-      const base = InsertBuilder.into(mockClient, usersTable).values({
+      const base = InsertBuilder.into(mockClient, usersTable).insert({
         id: "123e4567-e89b-12d3-a456-426614174000",
         name: "Alice",
       });
@@ -584,7 +584,7 @@ describe("InsertBuilder", () => {
         .primaryKey("id")
         .build();
 
-      const builder = InsertBuilder.into(mockClient, table).values({
+      const builder = InsertBuilder.into(mockClient, table).insert({
         id: "123e4567-e89b-12d3-a456-426614174000",
       });
 
@@ -604,7 +604,7 @@ describe("InsertBuilder", () => {
         .primaryKey("col1")
         .build();
 
-      const builder = InsertBuilder.into(mockClient, table).values({
+      const builder = InsertBuilder.into(mockClient, table).insert({
         col1: "a",
         col2: "b",
         col3: "c",
@@ -633,7 +633,7 @@ describe("InsertBuilder", () => {
 
       const userId = "123e4567-e89b-12d3-a456-426614174000";
       const context = InsertBuilder.into(mockClient, table)
-        .values({
+        .insert({
           id: userId,
           name: "Alice Johnson",
           email: "alice@example.com",
@@ -662,7 +662,7 @@ describe("InsertBuilder", () => {
         .build();
 
       const context = InsertBuilder.into(mockClient, table)
-        .values({
+        .insert({
           session_id: "123e4567-e89b-12d3-a456-426614174000",
           user_id: "223e4567-e89b-12d3-a456-426614174000",
           token: "abc123xyz",
@@ -686,7 +686,7 @@ describe("InsertBuilder", () => {
 
       const customTimestamp = 1234567890000000;
       const context = InsertBuilder.into(mockClient, table)
-        .values({
+        .insert({
           event_id: "123e4567-e89b-12d3-a456-426614174000",
           event_type: "login",
           data: '{"ip": "192.168.1.1"}',
@@ -708,7 +708,7 @@ describe("InsertBuilder", () => {
         .build();
 
       const context = InsertBuilder.into(mockClient, table)
-        .values({
+        .insert({
           username: "alice",
           user_id: "123e4567-e89b-12d3-a456-426614174000",
         })

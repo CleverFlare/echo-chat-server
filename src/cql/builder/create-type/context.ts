@@ -18,12 +18,24 @@ export class CreateTypeContext<TContext extends CreateTypeBuilderInput> {
 
     if (context.keyspace) dropBinding.keyspace(context.keyspace);
 
-    this.drop = () =>
-      dropBinding as DropTypeBuilder<{
-        type: TContext["type"];
-        keyspace: TContext["keyspace"];
-        ifExists: true;
-      }>;
+    this.drop = (): DropTypeBuilder<{
+      keyspace?: TContext["keyspace"] extends unknown
+        ? undefined
+        : TContext["keyspace"];
+      type: TContext["type"];
+      ifExists: true;
+    }> => {
+      const dropBinding = DropTypeBuilder.create(client)
+        .type(context.type)
+        .ifExists();
+
+      if (context.keyspace)
+        // eslint-disable-next-line
+        return dropBinding.keyspace(context.keyspace) as any;
+
+      // eslint-disable-next-line
+      return dropBinding as any;
+    };
   }
 
   static create<T extends CreateTypeBuilderInput>(
@@ -32,10 +44,6 @@ export class CreateTypeContext<TContext extends CreateTypeBuilderInput> {
     context: T,
   ): CreateTypeContext<T> {
     return new CreateTypeContext<T>(client, statement, context);
-  }
-
-  getContext() {
-    return this.context;
   }
 
   toCQL() {

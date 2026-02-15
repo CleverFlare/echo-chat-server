@@ -449,7 +449,7 @@ describe("CreateTableBuilder", () => {
         })
         .primaryKey("id");
 
-      const context = builder.build().getContext();
+      const context = builder.build().context;
       expect(context).toBeDefined();
       expect(context.keyspace).toBe("test_keyspace");
       expect(context.table).toBe("users");
