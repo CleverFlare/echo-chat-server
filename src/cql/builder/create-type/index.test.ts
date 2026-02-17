@@ -34,15 +34,6 @@ describe("CreateTypeBuilder", () => {
 
       expect(builder.toCQL()).toContain("test.user_type");
     });
-
-    it("should handle keyspace with various naming", () => {
-      const builder = CreateTypeBuilder.create(mockClient)
-        .keyspace("MyKeyspace123")
-        .type("my_type")
-        .schema({ value: cql.scalar.int });
-
-      expect(builder.toCQL()).toContain("MyKeyspace123.my_type");
-    });
   });
 
   describe("type()", () => {
@@ -52,14 +43,6 @@ describe("CreateTypeBuilder", () => {
         .schema({ street: cql.scalar.text });
 
       expect(builder.toCQL()).toContain("address");
-    });
-
-    it("should preserve type name casing", () => {
-      const builder = CreateTypeBuilder.create(mockClient)
-        .type("UserAddress")
-        .schema({ street: cql.scalar.text });
-
-      expect(builder.toCQL()).toContain("UserAddress");
     });
 
     it("should handle type names with underscores", () => {

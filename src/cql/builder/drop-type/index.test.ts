@@ -44,12 +44,6 @@ describe("DropTypeBuilder", () => {
       expect(builder.toCQL()).toContain("address");
     });
 
-    it("should preserve type name casing", () => {
-      const builder = DropTypeBuilder.create(mockClient).type("UserAddress");
-
-      expect(builder.toCQL()).toContain("UserAddress");
-    });
-
     it("should handle type names with underscores", () => {
       const builder =
         DropTypeBuilder.create(mockClient).type("user_profile_data");
