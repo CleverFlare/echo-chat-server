@@ -24,6 +24,8 @@ export class CQL {
 
   async shutdown() {
     await this.client.shutdown();
+
+    return this;
   }
 
   create() {

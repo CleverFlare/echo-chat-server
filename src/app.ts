@@ -20,7 +20,7 @@ app.use(cors());
 app.use((_, res, next) => {
   const oldJson = res.json;
 
-  res.json = (body: string) => {
+  res.json = function (body: unknown) {
     res.locals.data = body;
     return oldJson.call(res, body);
   };

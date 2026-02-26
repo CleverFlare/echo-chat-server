@@ -118,10 +118,6 @@
 //   });
 // });
 
-import { collection } from "./cassandra/types";
-import { userContacts } from "./modules/contacts/contacts.schema";
-import { cassandra } from "./shared/database";
-
 // const startDate = new Date();
 //
 // import http from "http";
@@ -145,10 +141,28 @@ import { cassandra } from "./shared/database";
 //   );
 // });
 
-cassandra.initialize({ initializeKeyspace: true }).then(async (c) => {
-  try {
-    console.log(userContacts.build().statement);
-  } catch (err) {
-    console.error(err);
-  }
-});
+import app from "./app";
+import { db } from "./shared/database";
+import { initSocket, registerSocketNamespaces } from "./socket";
+import { registerHttpRoutes } from "./http";
+import { createServer } from "https";
+
+async function bootstrap() {
+  await db.connect();
+
+  console.log("✅ Database connected successfully");
+
+  const server = createServer(app);
+
+  const io = initSocket(server);
+
+  registerSocketNamespaces(io);
+
+  registerHttpRoutes(app);
+
+  server.listen(3000, () => {
+    console.log("Server running on port 3000");
+  });
+}
+
+bootstrap();

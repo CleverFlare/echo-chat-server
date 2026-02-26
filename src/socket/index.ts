@@ -1,11 +1,11 @@
 import socket from "socket.io";
-import http from "http";
+import * as https from "https";
 
 export let io: socket.Server;
 
-export const initSocket = (server: http.Server) => {
+export const initSocket = (server: https.Server) => {
   io = new socket.Server(server, {
-    cors: { origin: "*" }, // customize if needed
+    cors: { origin: "*" },
   });
   return io;
 };

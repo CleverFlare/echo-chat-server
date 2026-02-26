@@ -1,7 +1,7 @@
-import { Cassandra } from "@/cassandra/builders/cassandra";
+import { CQL } from "@/cql";
 import { env } from "@/env";
 
-export const cassandra = new Cassandra({
+export const db = new CQL({
   localDataCenter: env.DATA_CENTER,
   contactPoints: [env.DATABASE_URL],
   keyspace: env.KEYSPACE,

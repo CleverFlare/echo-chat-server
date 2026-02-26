@@ -8,13 +8,13 @@ export type SocketHandler<T = any> = (
   socket: Socket,
   io: SocketServer,
   payload: T,
-) => void;
+) => Promise<void>;
 
 export type SocketMiddleware = (
   socket: Socket,
   io: SocketServer,
   next: () => void,
-) => void;
+) => Promise<void>;
 
 export class SocketRouter {
   private handlers = new Map<string, SocketHandler>();
@@ -26,7 +26,7 @@ export class SocketRouter {
   }
 
   on<T extends keyof SocketEvents>(
-    event: string,
+    event: T,
     handler: SocketHandler<SocketEvents[T]>,
   ) {
     this.handlers.set(event, handler);
@@ -39,13 +39,20 @@ export class SocketRouter {
         socket.on(event, async (payload) => {
           let idx = 0;
 
-          const next = () => {
+          const run = async (): Promise<void> => {
             const mw = this.middlewares[idx++];
-            if (mw) mw(socket, server, next);
-            else handler(socket, server, payload);
+            if (mw) {
+              await mw(socket, server, run);
+            } else {
+              await handler(socket, server, payload);
+            }
           };
 
-          next();
+          try {
+            await run();
+          } catch (err) {
+            console.error("Socket error:", err);
+          }
         });
       }
     });
