@@ -46,7 +46,7 @@
     "stringify-object": "^5.0.0",
     "tsx": "^4.19.4",
     "type-fest": "^5.4.3",
-    "ws": "^8.18.2",
+    "ws": "^8.19.0",
     "zod": "^3.25.23"
   },
   "devDependencies": {

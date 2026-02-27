@@ -107,7 +107,7 @@ describe("InsertBuilder", () => {
       expect(cqlString).toContain("event_type");
     });
 
-    it("should generate correct number of placeholders", () => {
+    it("should generate correct number of parameterized values placeholders", () => {
       const builder = InsertBuilder.into(mockClient, usersTable).insert({
         id: "123e4567-e89b-12d3-a456-426614174000",
         name: "Charlie",
@@ -116,7 +116,7 @@ describe("InsertBuilder", () => {
 
       const cqlString = builder.toCQL();
       // Should have 3 question marks for 3 values
-      const placeholderCount = (cqlString.match(/\?/g) || []).length;
+      const placeholderCount = (cqlString.match(/:(.*?)/g) || []).length;
       expect(placeholderCount).toBe(3);
     });
   });
@@ -386,10 +386,10 @@ describe("InsertBuilder", () => {
       });
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toMatch(/\(id, name\) VALUES \(\?, \?\)/);
+      expect(cqlString).toMatch(/\(id, name\) VALUES \(:(.*?), :(.*?)\)/);
     });
 
-    it("should use placeholders for values", () => {
+    it("should use parameterized placeholders for values", () => {
       const builder = InsertBuilder.into(mockClient, usersTable).insert({
         id: "123e4567-e89b-12d3-a456-426614174000",
         name: "Dave",
@@ -397,7 +397,7 @@ describe("InsertBuilder", () => {
       });
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toContain("VALUES (?, ?, ?)");
+      expect(cqlString).toContain("VALUES (:id, :name, :email)");
     });
   });
 
@@ -471,11 +471,11 @@ describe("InsertBuilder", () => {
 
         expect(mockClient.execute).toHaveBeenCalledWith(
           expect.stringContaining("INSERT INTO users"),
-          expect.arrayContaining([
-            "123e4567-e89b-12d3-a456-426614174000",
-            "Alice",
-            "alice@example.com",
-          ]),
+          expect.objectContaining({
+            id: "123e4567-e89b-12d3-a456-426614174000",
+            name: "Alice",
+            email: "alice@example.com",
+          }),
           { prepare: true },
         );
       });
@@ -491,7 +491,7 @@ describe("InsertBuilder", () => {
 
         expect(mockClient.execute).toHaveBeenCalledWith(
           expect.any(String),
-          ["123e4567-e89b-12d3-a456-426614174000", "Bob"],
+          { id: "123e4567-e89b-12d3-a456-426614174000", name: "Bob" },
           { prepare: true },
         );
       });
@@ -588,7 +588,7 @@ describe("InsertBuilder", () => {
         id: "123e4567-e89b-12d3-a456-426614174000",
       });
 
-      expect(builder.toCQL()).toContain("(id) VALUES (?)");
+      expect(builder.toCQL()).toContain("(id) VALUES (:id)");
     });
 
     it("should handle many columns", () => {
@@ -612,7 +612,7 @@ describe("InsertBuilder", () => {
         col5: "e",
       });
 
-      const placeholderCount = (builder.toCQL().match(/\?/g) || []).length;
+      const placeholderCount = (builder.toCQL().match(/:(.*?)/g) || []).length;
       expect(placeholderCount).toBe(5);
     });
   });
@@ -645,7 +645,7 @@ describe("InsertBuilder", () => {
 
       expect(mockClient.execute).toHaveBeenCalledWith(
         expect.stringContaining("INSERT INTO app.users"),
-        expect.any(Array),
+        expect.any(Object),
         { prepare: true },
       );
     });

@@ -14,7 +14,6 @@ export class InsertContext<
   protected constructor(
     private client: Client,
     private statement: string,
-    private values: unknown[],
     context: {
       insert: TInsertContext;
       table: TTableContext;
@@ -29,20 +28,25 @@ export class InsertContext<
   >(
     client: Client,
     statement: string,
-    values: unknown[],
     context: {
       insert: TInsert;
       table: TTable;
     },
   ): InsertContext<TInsert, TTable> {
-    return new InsertContext(client, statement, values, context);
+    return new InsertContext(client, statement, context);
   }
 
   toCQL() {
     return this.statement;
   }
 
+  getValues() {
+    return this.context.insert.values;
+  }
+
   async execute(): Promise<void> {
-    await this.client.execute(this.statement, this.values, { prepare: true });
+    await this.client.execute(this.statement, this.context.insert.values, {
+      prepare: true,
+    });
   }
 }

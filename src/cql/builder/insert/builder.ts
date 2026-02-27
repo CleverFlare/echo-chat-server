@@ -78,13 +78,9 @@ export class InsertBuilder<
   ) {
     const columns = Object.keys(this.#actual.values);
     const columnList = columns.join(", ");
-    const valuePlaceholders = columns.map(() => "?").join(", ");
+    const valuePlaceholders = columns.map((key) => `:${key}`).join(", ");
 
-    return {
-      columns: columnList,
-      placeholders: valuePlaceholders,
-      values: Object.values(this.#actual.values),
-    };
+    return `(${columnList}) VALUES (${valuePlaceholders})`;
   }
 
   private assembleOptions(
@@ -117,10 +113,8 @@ export class InsertBuilder<
       parts.push(this.#context.table);
     }
 
-    const { columns, placeholders } = this.assembleValues();
-    parts.push(`(${columns})`);
-    parts.push("VALUES");
-    parts.push(`(${placeholders})`);
+    const values = this.assembleValues();
+    parts.push(values);
 
     if (this.#actual.ifNotExists) {
       parts.push("IF NOT EXISTS");
@@ -141,9 +135,8 @@ export class InsertBuilder<
     >,
   ) {
     const cql = this.buildCQL();
-    const { values } = this.assembleValues();
 
-    return InsertContext.create(this.client, cql, values, {
+    return InsertContext.create(this.client, cql, {
       insert: this.#actual,
       table: this.#context,
     });
