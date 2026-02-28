@@ -20,11 +20,11 @@ export class InsertBuilder<
     this.#context = context;
   }
 
-  static into<TInitialContext extends CreateTableContext<TableContext>>(
+  static into<TContext extends TableContext>(
     client: Client,
-    table: TInitialContext,
+    table: CreateTableContext<TContext>,
     // eslint-disable-next-line
-  ): InsertBuilder<{}, TInitialContext["context"]> {
+  ): InsertBuilder<{}, TContext> {
     return new InsertBuilder(client, {}, table.context);
   }
 

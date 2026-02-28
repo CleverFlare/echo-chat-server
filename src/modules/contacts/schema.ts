@@ -25,5 +25,6 @@ export const userContacts = db
     avatarUrl: cql.scalar.text,
     chatId: cql.scalar.text,
     unread: cql.scalar.text,
-    lastMessage: cql.frozen(lastMessage.asType()),
-  });
+    lastMessage: lastMessage.asType(),
+  })
+  .primaryKey("user_id", "contact_id");

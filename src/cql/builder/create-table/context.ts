@@ -4,11 +4,13 @@ import { SelectBuilder } from "../select/builder";
 import { DropTableBuilder } from "../drop-table/builder";
 import { InsertBuilder } from "../insert/builder";
 import { wrapMethod } from "../../utils/wrap-method";
+import { UpdateBuilder } from "../update/builder";
 
 export class CreateTableContext<TContext extends TableContext> {
   select;
   drop;
   insert;
+  update;
 
   protected constructor(
     private client: Client,
@@ -49,6 +51,13 @@ export class CreateTableContext<TContext extends TableContext> {
     );
 
     this.insert = wrapMethod(insertBinding, insertBinding.insert);
+
+    const updateBinding = UpdateBuilder.from(
+      client,
+      this as CreateTableContext<TContext>,
+    );
+
+    this.update = () => updateBinding;
   }
 
   static create<T extends TableContext>(

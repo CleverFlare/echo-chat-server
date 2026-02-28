@@ -1,10 +1,20 @@
-import { TableContext } from "@/cql/types";
+import { ContainsAll, TableContext } from "@/cql/types";
 import { SelectBuilder } from "./builder";
 
 export type SelectInput = {
   columns: readonly string[];
   whereConditions?: readonly [string, string, unknown][];
 };
+
+export type SelectResult<
+  Context extends TableContext,
+  Columns extends SelectInput["columns"],
+> = {
+  [K in Exclude<
+    keyof Context["columns"],
+    Columns
+  >]: Context["columns"][K]["_meta"]["ts"];
+}[];
 
 export type ExtractPartitionKeys<
   T extends readonly [string, string, unknown][],
@@ -13,11 +23,6 @@ export type ExtractPartitionKeys<
     ? First
     : never;
 };
-
-export type ContainsAll<
-  T extends readonly unknown[],
-  U extends readonly unknown[],
-> = U[number] extends T[number] ? true : false;
 
 export type HasAllPartitionKeys<
   T extends SelectInput["whereConditions"],
@@ -64,13 +69,3 @@ export type AppendWhereCondition<
       ];
   columns: TState["columns"];
 };
-
-export type SelectResult<
-  Context extends TableContext,
-  Columns extends SelectInput["columns"],
-> = {
-  [K in Exclude<
-    keyof Context["columns"],
-    Columns
-  >]: Context["columns"][K]["_meta"]["ts"];
-}[];

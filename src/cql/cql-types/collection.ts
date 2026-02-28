@@ -1,4 +1,3 @@
-import { snakeCase } from "change-case";
 import {
   CqlType,
   FrozenMeta,
@@ -7,10 +6,8 @@ import {
   MapMeta,
   SetMeta,
   TupleMeta,
-  UdtMeta,
   ValidMapKey,
 } from "./types";
-import type { SnakeCasedProperties } from "type-fest";
 
 // eslint-disable-next-line
 export function list<E extends CqlType<any, any, any>>(element: E) {

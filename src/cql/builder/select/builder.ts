@@ -2,9 +2,9 @@ import { GetCqlTypeOperators, TableContext } from "@/cql/types";
 import { CreateTableContext } from "../create-table/context";
 import { Client } from "cassandra-driver";
 import {
+  SelectInput,
   AppendWhereCondition,
   SelectableColumn,
-  SelectInput,
   ValidatePartitionKeys,
 } from "./types";
 import { SelectContext } from "./context";

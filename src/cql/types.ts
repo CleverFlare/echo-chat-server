@@ -30,3 +30,8 @@ export type GetCqlTypeOperators<
         TContext["columns"][TColumn]["_meta"]["operators"]
       >["clustering"][number]
     : never;
+
+export type ContainsAll<
+  T extends readonly unknown[],
+  U extends readonly unknown[],
+> = U[number] extends T[number] ? true : false;
