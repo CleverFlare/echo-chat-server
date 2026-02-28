@@ -38,11 +38,11 @@ export class CQL {
     };
   }
 
-  into<T extends CreateTableContext<TableContext>>(table: T) {
+  into<T extends TableContext>(table: CreateTableContext<T>) {
     return InsertBuilder.into<T>(this.client, table);
   }
 
-  from<T extends CreateTableContext<TableContext>>(table: T) {
+  from<T extends TableContext>(table: CreateTableContext<T>) {
     return SelectBuilder.from<T>(this.client, table);
   }
 }

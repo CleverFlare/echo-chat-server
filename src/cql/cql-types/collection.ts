@@ -19,6 +19,7 @@ export function list<E extends CqlType<any, any, any>>(element: E) {
       operators: {
         partition: null,
         clustering: ["=", "<", ">", "<=", ">=", "in", "contains"],
+        regular: null,
       } as const,
     },
   } satisfies CqlType<Array<InferTs<E>>, "list", ListMeta<E>>;
@@ -34,6 +35,7 @@ export function set<E extends CqlType<any, any, any>>(element: E) {
       operators: {
         partition: null,
         clustering: ["=", "<", ">", "<=", ">=", "in", "contains"],
+        regular: null,
       } as const,
     },
   } satisfies CqlType<Array<InferTs<E>>, "set", SetMeta<E>>;
@@ -54,6 +56,7 @@ export function map<
       operators: {
         partition: null,
         clustering: ["=", "<", ">", "<=", ">=", "in", "contains"],
+        regular: null,
       } as const,
     },
   } satisfies CqlType<Map<InferTs<K>, InferTs<V>>, "map", MapMeta<K, V>>;
@@ -74,6 +77,7 @@ export function tuple<E extends readonly CqlType<any, any, any>[]>(
       operators: {
         partition: null,
         clustering: ["=", "<", ">", "<=", ">=", "in", "contains"],
+        regular: null,
       } as const,
     },
   } satisfies CqlType<{ [K in keyof E]: InferTs<E[K]> }, "tuple", TupleMeta<E>>;
@@ -90,6 +94,7 @@ export function frozen<E extends CqlType<any, any, any>>(element: E) {
       operators: {
         partition: ["=", "in"],
         clustering: ["=", "<", ">", "<=", ">=", "in", "not contains"],
+        regular: ["=", "!=", "in"],
       } as const,
     },
   } satisfies CqlType<InferTs<E>, "frozen", FrozenMeta<E>>;

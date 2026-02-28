@@ -12,9 +12,11 @@ export type CqlKind =
 export type Operators<
   P extends readonly string[] | null = readonly string[] | null,
   C extends readonly string[] | null = readonly string[] | null,
+  R extends readonly string[] | null = readonly string[] | null,
 > = {
-  clustering: C;
   partition: P;
+  clustering: C;
+  regular: R;
 };
 
 export interface BaseMeta<

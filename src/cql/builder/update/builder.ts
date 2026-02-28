@@ -222,8 +222,14 @@ export class UpdateBuilder<
   }
 
   if<
-    const C extends keyof TContext["columns"] & string,
-    O extends GetCqlTypeOperators<C, TContext>,
+    const C extends Exclude<
+      keyof TContext["columns"],
+      TContext["partitionKeys"][number] | TContext["clusteringKeys"][number]
+    > &
+      string,
+    O extends NonNullable<
+      TContext["columns"][C]["_meta"]["operators"]
+    >["regular"][number],
     V extends TContext["columns"][C]["_meta"]["ts"],
   >(
     this: UpdateBuilder<

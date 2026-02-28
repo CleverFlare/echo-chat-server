@@ -26,11 +26,11 @@ export class SelectBuilder<
     this.#context = context;
   }
 
-  static from<TInitialContext extends CreateTableContext<TableContext>>(
+  static from<TContext extends TableContext>(
     client: Client,
-    table: TInitialContext,
+    table: CreateTableContext<TContext>,
     // eslint-disable-next-line
-  ): SelectBuilder<{}, TInitialContext["context"]> {
+  ): SelectBuilder<{}, TContext> {
     return new SelectBuilder(client, {}, table.context);
   }
 
