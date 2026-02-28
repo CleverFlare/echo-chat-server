@@ -1,18 +1,16 @@
 import dotenv from "dotenv";
 dotenv.config();
+import { parse } from "./shared/utils/env-parser";
+import { z } from "zod/v4";
 
-export type ENV = {
-  DATABASE_URL: string;
-  DATA_CENTER: string;
-  KEYSPACE: string;
-  HASH_SALT: string;
-  JWT_PRIVATE: string;
-};
-
-export const env: ENV = {
-  DATABASE_URL: process.env.DATABASE_URL!,
-  DATA_CENTER: process.env.DATA_CENTER!,
-  KEYSPACE: process.env.KEYSPACE!,
-  HASH_SALT: process.env.HASH_SALT!,
-  JWT_PRIVATE: process.env.JWT_PRIVATE!,
-};
+export const env = parse(
+  process.env,
+  z.object({
+    DATABASE_URL: z.string(),
+    DATA_CENTER: z.string(),
+    KEYSPACE: z.string(),
+    HASH_SALT: z.coerce.number(),
+    JWT_PRIVATE: z.string(),
+    AUTH_POSTGRES_URL: z.string(),
+  }),
+);

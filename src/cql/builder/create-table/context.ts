@@ -5,12 +5,14 @@ import { DropTableBuilder } from "../drop-table/builder";
 import { InsertBuilder } from "../insert/builder";
 import { wrapMethod } from "../../utils/wrap-method";
 import { UpdateBuilder } from "../update/builder";
+import { DeleteBuilder } from "../delete/builder";
 
 export class CreateTableContext<TContext extends TableContext> {
   select;
   drop;
   insert;
   update;
+  delete;
 
   protected constructor(
     private client: Client,
@@ -58,6 +60,13 @@ export class CreateTableContext<TContext extends TableContext> {
     );
 
     this.update = () => updateBinding;
+
+    const deleteBinding = DeleteBuilder.from(
+      client,
+      this as CreateTableContext<TContext>,
+    );
+
+    this.delete = () => deleteBinding;
   }
 
   static create<T extends TableContext>(

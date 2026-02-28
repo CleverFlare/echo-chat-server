@@ -4,21 +4,10 @@ import { registerSockets } from "./socket";
 import { registerHttpRoutes } from "./http";
 import { createServer } from "https";
 import { Server } from "socket.io";
-import { userContacts } from "./modules/contacts/schema";
+import "./env";
 
 async function bootstrap() {
   await db.connect();
-
-  console.log(
-    userContacts
-      .build()
-      .update()
-      .set("avatar_url", "lol")
-      .setField("last_message", "timestamp", new Date())
-      .where("contact_id", "=", "")
-      .where("user_id", "=", "")
-      .build(),
-  );
 
   console.log("✅ Database connected successfully");
 
