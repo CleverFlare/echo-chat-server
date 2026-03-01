@@ -1,7 +1,6 @@
 import { CQL } from "./cql";
 import { CreateTableBuilder } from "./cql/builder/create-table/builder";
 import { CreateTypeBuilder } from "./cql/builder/create-type/builder";
-import { env } from "./env";
 
 export const db = new CQL({
   localDataCenter: env.DATA_CENTER,
