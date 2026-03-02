@@ -12,7 +12,7 @@
     "build": "bun build src/index.ts --outdir dist",
     "start": "bun src/index.ts",
     "env:generate": "bun src/env-types.generate.ts",
-    "migrate": "bun src/schema-init.ts",
+    "migrate": "bun src/migrate.ts",
     "test:types": "tsd"
   },
   "overrides": {

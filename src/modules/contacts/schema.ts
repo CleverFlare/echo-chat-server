@@ -1,17 +1,13 @@
 import { cql } from "@/cql/cql-types";
 import { db } from "@/shared/database";
 
-export const lastMessage = db
-  .create()
-  .type("lastMessage")
-  .schema({
-    id: cql.scalar.text,
-    content: cql.scalar.text,
-    timestamp: cql.scalar.timestamp,
-    sender_id: cql.scalar.text,
-    status: cql.scalar.text,
-  })
-  .build();
+export const lastMessage = db.create().type("lastMessage").schema({
+  id: cql.scalar.text,
+  content: cql.scalar.text,
+  timestamp: cql.scalar.timestamp,
+  sender_id: cql.scalar.text,
+  status: cql.scalar.text,
+});
 
 export const userContacts = db
   .create()
@@ -25,6 +21,6 @@ export const userContacts = db
     avatarUrl: cql.scalar.text,
     chatId: cql.scalar.text,
     unread: cql.scalar.text,
-    lastMessage: lastMessage.asType(),
+    lastMessage: cql.frozen(lastMessage.build().asType()),
   })
   .primaryKey("user_id", "contact_id");
