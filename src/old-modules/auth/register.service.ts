@@ -2,7 +2,7 @@ import { getUserByUsername, insertUser } from "./auth.repository";
 import { SignJWT } from "jose";
 import { hash } from "bcrypt";
 import { env } from "@/env";
-import { AppError } from "@/shared/app-error";
+import { AppError } from "@/utils/app-error";
 import { StatusCodes } from "http-status-codes";
 
 type RegisterType = {

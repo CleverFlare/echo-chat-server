@@ -58,6 +58,28 @@ export class UpdateBuilder<
     }) as any;
   }
 
+  setMany(
+    this: UpdateBuilder<TState, TContext>,
+    data: {
+      [K in keyof TContext["columns"]]: NonNullable<
+        TContext["columns"][K]["_meta"]
+      >["ts"];
+    },
+  ): UpdateBuilder<TState & { updates: Update[] }, TContext> {
+    return this.clone({
+      ...this.#actual,
+      updates: [
+        ...(this.#actual.updates || []),
+        ...Object.entries(data).map(([column, value]) => ({
+          kind: "replace",
+          column,
+          value,
+        })),
+      ],
+      // eslint-disable-next-line
+    }) as any;
+  }
+
   append<
     const Column extends
       | MapColumn<TContext>
@@ -168,7 +190,6 @@ export class UpdateBuilder<
   >(
     this: UpdateBuilder<
       Omit<TState, "updates" | "whereConditions"> & {
-        updates: Update[];
         whereConditions?: WhereConditions;
       },
       TContext
@@ -188,7 +209,6 @@ export class UpdateBuilder<
   >(
     this: UpdateBuilder<
       Omit<TState, "updates"> & {
-        updates: Update[];
         whereConditions: WhereConditions;
       },
       TContext

@@ -1,41 +1,53 @@
 import { cql } from "@/cql/cql-types";
-import { db } from "@/shared/database";
+import { db } from "@/utils/database";
 
-export const connectedBySocketId = db
+export const userByPhoneBuilder = db
   .create()
-  .table("connectedBySocketId")
-  .schema({ user_id: cql.scalar.text, socket_id: cql.scalar.text })
-  .primaryKey("socket_id");
-
-export const connectedByUserId = db
-  .create()
-  .table("connectedByUserId")
-  .schema({ user_id: cql.scalar.text, socket_id: cql.scalar.text })
-  .primaryKey("user_id");
-
-export const userByUsername = db
-  .create()
-  .table("userByUsername")
+  .table("user_by_phone")
   .schema({
-    username: cql.scalar.text,
-    password_hash: cql.scalar.text,
+    phone: cql.scalar.text,
     id: cql.scalar.text,
-    created_at: cql.scalar.timestamp,
   })
-  .primaryKey("username");
+  .primaryKey("phone");
 
-export const userById = db
+export const userByPhone = userByPhoneBuilder.build();
+
+export const userByEmailBuilder = db
   .create()
-  .table("userById")
+  .table("user_by_email")
+  .schema({
+    email: cql.scalar.text,
+    id: cql.scalar.text,
+  })
+  .primaryKey("email");
+
+export const userByEmail = userByEmailBuilder.build();
+
+export const userByIdBuilder = db
+  .create()
+  .table("user_by_id")
   .schema({
     id: cql.scalar.text,
-    username: cql.scalar.text,
-    password_hash: cql.scalar.text,
+    handle: cql.scalar.text,
     first_name: cql.scalar.text,
     last_name: cql.scalar.text,
     email: cql.scalar.text,
-    avatar_url: cql.scalar.text,
-    created_at: cql.scalar.text,
+    phone: cql.scalar.text,
+    avatar: cql.scalar.text,
+    created_at: cql.scalar.timestamp,
     bio: cql.scalar.text,
   })
   .primaryKey("id");
+
+export const userById = userByIdBuilder.build();
+
+export const userByHandleBuilder = db
+  .create()
+  .table("user_by_handle")
+  .schema({
+    handle: cql.scalar.text,
+    id: cql.scalar.text,
+  })
+  .primaryKey("handle");
+
+export const userByHandle = userByHandleBuilder.build();

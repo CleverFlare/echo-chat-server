@@ -1,0 +1,146 @@
+import { InferSchema } from "@/cql/types";
+import { userByEmail, userById, userByPhone } from "./schema";
+import { Option, Result } from "@/utils/rust-types";
+
+type UserById = typeof userById;
+
+export async function findUserById(
+  id: string,
+): Promise<Result<Option<InferSchema<UserById>>, Error>> {
+  try {
+    const results = await userById
+      .select("*")
+      .where("id", "=", id)
+      .build()
+      .execute();
+
+    if (results.length === 0 || results[0] === undefined) {
+      return Result.Ok(Option.None());
+    }
+
+    const user = results[0];
+
+    return Result.Ok(Option.Some(user));
+  } catch (err) {
+    return Result.Err(err as Error);
+  }
+}
+
+export async function insertUser(
+  user: InferSchema<UserById>,
+): Promise<Result<Option<never>, Error>> {
+  try {
+    await userById.insert(user).build().execute();
+
+    await userByEmail.insert(user).build().execute();
+
+    await userByPhone.insert(user).build().execute();
+
+    return Result.Ok(Option.None());
+  } catch (err) {
+    return Result.Err(err as Error);
+  }
+}
+
+export async function removeUser(
+  id: string,
+): Promise<Result<Option<never>, Error>> {
+  try {
+    const userRecord = await userById
+      .select()
+      .where("id", "=", id)
+      .build()
+      .execute();
+
+    await userById.delete().where("id", "=", id).build().execute();
+
+    await userByPhone
+      .delete()
+      .where("phone", "=", userRecord[0].phone)
+      .build()
+      .execute();
+
+    await userByEmail
+      .delete()
+      .where("email", "=", userRecord[0].email)
+      .build()
+      .execute();
+
+    return Result.Ok(Option.None());
+  } catch (err) {
+    return Result.Err(err as Error);
+  }
+}
+
+export async function updateUser(
+  id: string,
+  user: Partial<Omit<InferSchema<UserById>, "created_at" | "id">>,
+): Promise<Result<Option<never>, Error>> {
+  try {
+    const userRecord = await userById
+      .select()
+      .where("id", "=", id)
+      .build()
+      .execute();
+
+    if (!userRecord[0]) return Result.Ok(Option.None());
+
+    const filteredInput = Object.entries(user)
+      // eslint-disable-next-line
+      .filter(([_, value]) => value !== undefined)
+      .reduce<Partial<Omit<InferSchema<UserById>, "created_at" | "id">>>(
+        (prev, [key, value]) => ({ ...prev, [key]: value }),
+        {},
+      );
+
+    if (Object.keys(filteredInput).length === 0) {
+      return Result.Ok(Option.None());
+    }
+
+    const data: InferSchema<UserById> = {
+      ...userRecord[0],
+      ...filteredInput,
+    };
+
+    const updates: Promise<void>[] = [
+      userById.update().setMany(data).where("id", "=", id).build().execute(),
+    ];
+
+    if (user.email) {
+      updates.push(
+        userByEmail
+          .update()
+          .set("email", user.email)
+          .where("email", "=", userRecord[0].email)
+          .build()
+          .execute(),
+      );
+    }
+
+    if (user.phone) {
+      updates.push(
+        userByPhone
+          .update()
+          .set("phone", user.phone)
+          .where("phone", "=", userRecord[0].phone)
+          .build()
+          .execute(),
+      );
+    }
+
+    const results = await Promise.allSettled(updates);
+
+    const failed = results.filter((r) => r.status === "rejected");
+
+    if (failed.length > 0) {
+      // log, compensate, or return a specific error
+      return Result.Err(
+        new Error(failed.map((failure) => failure.reason).join(" - ")),
+      );
+    }
+
+    return Result.Ok(Option.None());
+  } catch (err) {
+    return Result.Err(err as Error);
+  }
+}

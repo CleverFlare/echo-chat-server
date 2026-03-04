@@ -6,7 +6,7 @@ import { snakeCase } from "change-case";
 import { SnakeCase, SnakeCasedProperties } from "type-fest";
 import { Client } from "cassandra-driver";
 
-export class CreateTableBuilder<TState extends CreateTableBuilderInput> {
+export class CreateTableBuilder<const TState extends CreateTableBuilderInput> {
   #actual: TState;
 
   private constructor(
@@ -20,7 +20,7 @@ export class CreateTableBuilder<TState extends CreateTableBuilderInput> {
     return new CreateTableBuilder(client, {});
   }
 
-  private clone<T extends CreateTableBuilderInput>(
+  private clone<const T extends CreateTableBuilderInput>(
     actual: T,
   ): CreateTableBuilder<T> {
     return new CreateTableBuilder(this.client, actual);
@@ -226,7 +226,7 @@ export class CreateTableBuilder<TState extends CreateTableBuilderInput> {
     return parts.join(" ") + ";";
   }
 
-  build<T extends TState & TableContext>(this: CreateTableBuilder<T>) {
+  build<const T extends TState & TableContext>(this: CreateTableBuilder<T>) {
     const cql = this.buildCQL();
 
     return CreateTableContext.create<T>(this.client, cql, this.#actual);

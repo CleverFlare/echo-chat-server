@@ -1,4 +1,4 @@
-import { client } from "@/shared/database";
+import { client } from "@/utils/database";
 
 export async function getUserByUsername<T>(username: string) {
   const userByUsernameRecord = await client.execute(

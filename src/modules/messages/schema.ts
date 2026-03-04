@@ -1,7 +1,7 @@
 import { cql } from "@/cql/cql-types";
-import { db } from "@/shared/database";
+import { db } from "@/utils/database";
 
-export const messageByChatId = db
+export const messageByChatIdBuilder = db
   .create()
   .table("message_by_chat_id")
   .schema({
@@ -15,3 +15,5 @@ export const messageByChatId = db
   })
   .primaryKey("chat_id", "timestamp")
   .clusteringOrderBy({ timestamp: "desc" });
+
+export const messageByChatId = messageByChatIdBuilder.build();

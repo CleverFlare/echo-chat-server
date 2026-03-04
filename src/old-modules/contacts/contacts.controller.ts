@@ -1,6 +1,6 @@
-import { extractTokenData } from "@/shared/utils/extract-token-data";
-import { verifyAuth } from "@/shared/utils/verify-auth";
-import { validateBody } from "@/shared/validate-body";
+import { extractTokenData } from "@/utils/extract-token-data";
+import { verifyAuth } from "@/utils/verify-auth";
+import { validateBody } from "@/utils/validate-body";
 import { Request, Response, Router } from "express";
 import expressAsyncHandler from "express-async-handler";
 import { z } from "zod/v4";

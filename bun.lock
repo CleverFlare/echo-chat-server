@@ -6,6 +6,7 @@
       "name": "echo-chat-backend",
       "dependencies": {
         "@monitext/nprint": "^0.3.0",
+        "@sigmasd/rust-types": "npm:@jsr/sigmasd__rust-types",
         "@stdlib/string-pascalcase": "^0.2.2",
         "@types/node": "^25.3.3",
         "@types/ws": "^8.18.1",
@@ -273,6 +274,8 @@
     "@sideway/formula": ["@sideway/formula@3.0.1", "", {}, "sha512-/poHZJJVjx3L+zVD6g9KgHfYnb443oi7wLu/XKojDviHy6HOEOA6z1Trk5aR1dGcmPenJEgb2sK2I80LeS3MIg=="],
 
     "@sideway/pinpoint": ["@sideway/pinpoint@2.0.0", "", {}, "sha512-RNiOoTPkptFtSVzQevY/yWtZwf/RxyVnPy/OcA9HBM3MlGDnBEYL5B41H0MTn0Uec8Hi+2qUtTfG2WWZBmMejQ=="],
+
+    "@sigmasd/rust-types": ["@jsr/sigmasd__rust-types@0.6.1", "https://npm.jsr.io/~/11/@jsr/sigmasd__rust-types/0.6.1.tgz", {}, "sha512-8RW7l7gEyqUoSF2/1EkbOWgXYLrKrEAthUIRXp0FHmfYtOzQp40EsxF9YilZwAQkKGcjQiNbcTOoeFbR+Efb6Q=="],
 
     "@sinclair/typebox": ["@sinclair/typebox@0.34.8", "", {}, "sha512-PuVkV/MmJOsjem7FIlmuPhd2Owvq4v+ZVvN6wxWuT1NduGDzz2jlc4xIvPQSUE0yS13BRaYOVNq9rnIOkucGVA=="],
 

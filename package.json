@@ -12,7 +12,7 @@
     "build": "bun build src/index.ts --outdir dist",
     "start": "bun src/index.ts",
     "env:generate": "bun src/env-types.generate.ts",
-    "migrate": "bun src/migrate.ts",
+    "migrate": "bun src/migrate.ts && bunx @better-auth/cli@latest migrate --config src/utils/auth.ts",
     "test:types": "tsd"
   },
   "overrides": {
@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@monitext/nprint": "^0.3.0",
+    "@sigmasd/rust-types": "npm:@jsr/sigmasd__rust-types",
     "@stdlib/string-pascalcase": "^0.2.2",
     "@types/node": "^25.3.3",
     "@types/ws": "^8.18.1",

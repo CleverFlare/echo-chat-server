@@ -1,4 +1,4 @@
-import { verifyAuth } from "@/shared/utils/verify-auth";
+import { verifyAuth } from "@/utils/verify-auth";
 import { Request, Response, Router } from "express";
 import asyncHandler from "express-async-handler";
 import { getProfileById, getProfileByToken } from "./get-profile.service";

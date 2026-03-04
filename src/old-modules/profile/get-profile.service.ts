@@ -1,9 +1,9 @@
 import { env } from "@/env";
 import { jwtVerify } from "jose";
 import { getUserById } from "./profile.repository";
-import { AppError } from "@/shared/app-error";
+import { AppError } from "@/utils/app-error";
 import { StatusCodes } from "http-status-codes";
-import { sanitizeObject } from "@/shared/utils";
+import { sanitizeObject } from "@/utils";
 
 export async function getProfileByToken(token: string) {
   const {

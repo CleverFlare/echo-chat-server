@@ -1,4 +1,4 @@
-import { validateBody } from "@/shared/validate-body";
+import { validateBody } from "@/utils/validate-body";
 import { Request, Response, Router } from "express";
 import asyncHandler from "express-async-handler";
 import { StatusCodes } from "http-status-codes";

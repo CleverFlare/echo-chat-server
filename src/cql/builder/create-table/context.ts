@@ -7,7 +7,7 @@ import { wrapMethod } from "../../utils/wrap-method";
 import { UpdateBuilder } from "../update/builder";
 import { DeleteBuilder } from "../delete/builder";
 
-export class CreateTableContext<TContext extends TableContext> {
+export class CreateTableContext<const TContext extends TableContext> {
   select;
   drop;
   insert;
@@ -69,7 +69,7 @@ export class CreateTableContext<TContext extends TableContext> {
     this.delete = () => deleteBinding;
   }
 
-  static create<T extends TableContext>(
+  static create<const T extends TableContext>(
     client: Client,
     statement: string,
     context: T,

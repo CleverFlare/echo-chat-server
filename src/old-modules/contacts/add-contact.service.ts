@@ -1,4 +1,4 @@
-import { AppError } from "@/shared/app-error";
+import { AppError } from "@/utils/app-error";
 import {
   findConnectedUserByUserId,
   getUserByUsername,

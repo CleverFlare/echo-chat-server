@@ -1,5 +1,21 @@
-import EventEmitter from "events";
+import { RedisClient } from "bun";
+import { ChannelEventMap } from "./types";
 
-// System-wide event bus for cross-layer communication between the socket and http layers
-// In other words, use it to communicate between socket namespaces and http routes.
-export const eventBus = new EventEmitter();
+export const publisher = new RedisClient(process.env.REDIS_URL);
+export const subscriber = new RedisClient(process.env.REDIS_URL);
+
+export const publish = <const Channel extends keyof ChannelEventMap>(
+  channel: Channel,
+  event: ChannelEventMap[Channel],
+) => {
+  publisher.publish(channel, JSON.stringify(event));
+};
+
+export const subscribe = <const Channel extends keyof ChannelEventMap>(
+  channel: Channel,
+  handler: (message: ChannelEventMap[Channel]) => void,
+) => {
+  subscriber.subscribe(channel, (message: string) =>
+    handler(JSON.parse(message)),
+  );
+};

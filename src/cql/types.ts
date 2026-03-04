@@ -1,5 +1,6 @@
 import { CqlType } from "@/cql/cql-types/types";
 import { WithOption } from "@/cql/with-options/types";
+import { CreateTableContext } from "./builder/create-table/context";
 
 // eslint-disable-next-line
 export type Schema = Record<string, CqlType<any, any, any>>;
@@ -35,3 +36,9 @@ export type ContainsAll<
   T extends readonly unknown[],
   U extends readonly unknown[],
 > = U[number] extends T[number] ? true : false;
+
+export type InferSchema<Context extends CreateTableContext<TableContext>> = {
+  [K in keyof Context["context"]["columns"]]: NonNullable<
+    Context["context"]["columns"][K]["_meta"]
+  >["ts"];
+};

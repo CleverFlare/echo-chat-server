@@ -1,4 +1,4 @@
-import { client } from "@/shared/database";
+import { client } from "@/utils/database";
 import { Message } from "./messages.schema";
 
 export async function findMessagesByChatId<T>(chatId: string) {

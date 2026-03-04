@@ -1,56 +1,43 @@
 import { Elysia } from "elysia";
-import { cols, log, pad } from "@monitext/nprint";
-import { auth } from "./shared/auth";
+import { cols } from "@monitext/nprint";
+import { authMiddleware } from "./utils/auth";
+import { db } from "./utils/database";
+import logger from "./utils/logger";
 
-// user middleware (compute user and session and pass to routes)
-const betterAuth = new Elysia({ name: "better-auth" })
-  .mount(auth.handler)
-  .macro({
-    auth: {
-      async resolve({ status, request: { headers } }) {
-        const session = await auth.api.getSession({
-          headers,
-        });
+async function main() {
+  await db.connect();
 
-        if (!session) return status(401);
+  const app = new Elysia()
+    .use(authMiddleware)
+    .get("/", "Hello, World!")
+    .listen(3000);
 
-        return {
-          user: session.user,
-          session: session.session,
-        };
-      },
-    },
-  });
-
-const app = new Elysia()
-  .mount(betterAuth)
-  .get("/", () => "Hello Elysia")
-  .listen(3000);
-
-log(
-  pad(
+  logger.log(
     cols.cyan(
       `🦊 Elysia is running at ${cols.underline(cols.blue(`${app.server?.protocol}://${app.server?.hostname}:${app.server?.port}`))}`,
     ),
-    { x: 2 },
-  ),
-);
+  )({ hideDateTime: true });
 
-log(pad(cols.cyan(`\nPress ${cols.gray("q")} to exit`), { x: 2 }));
+  logger.log(cols.cyan(`\nPress ${cols.gray("q")} to exit`))({
+    hideDateTime: true,
+  });
 
-// Configure terminal input
-const stdin = process.stdin;
-stdin.setRawMode(true); // Allows detecting individual keypresses
-stdin.resume();
-stdin.setEncoding("utf8");
+  // Configure terminal input
+  const stdin = process.stdin;
+  stdin.setRawMode(true); // Allows detecting individual keypresses
+  stdin.resume();
+  stdin.setEncoding("utf8");
 
-stdin.on("data", (key) => {
-  // 'q' key or Ctrl+C (ASCII 3)
-  if (key === "q" || key === "\u0003") {
-    log(pad(cols.gray("\nStopping server..."), { x: 2 }));
-    app.stop().then(() => {
-      log(pad(cols.gray("\nServer stopped."), { x: 2 }));
-      process.exit(0);
-    });
-  }
-});
+  stdin.on("data", (key) => {
+    // 'q' key or Ctrl+C (ASCII 3)
+    if (key === "q" || key === "\u0003") {
+      logger.log(cols.gray("\nStopping server..."))({ hideDateTime: true });
+      app.stop().then(() => {
+        logger.log(cols.gray("\nServer stopped."))({ hideDateTime: true });
+        process.exit(0);
+      });
+    }
+  });
+}
+
+main();

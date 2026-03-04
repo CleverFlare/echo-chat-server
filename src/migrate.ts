@@ -4,9 +4,14 @@ import { CreateTableBuilder } from "./cql/builder/create-table/builder";
 import { CreateTypeBuilder } from "./cql/builder/create-type/builder";
 import { CreateTypeBuilderInput } from "./cql/builder/create-type/types";
 import { TableContext } from "./cql/types";
-import { lastMessage, userContacts } from "./modules/contacts/schema";
+import {
+  lastMessage,
+  contactByUserId,
+  contactByHandle,
+} from "./modules/contacts/schema";
 import { messageByChatId } from "./modules/messages/schema";
 import { exit } from "process";
+import { userByEmail, userById, userByPhone } from "./modules/auth/schema";
 
 warn(
   pad(cols.yellow("⚠️ Migrations reset the schemas you provide."), { x: 2 }),
@@ -21,9 +26,9 @@ async function migrate({
   udts: CreateTypeBuilder<CreateTypeBuilderInput>[];
 }) {
   const db = new CQL({
-    localDataCenter: Bun.env.DATA_CENTER,
-    contactPoints: [Bun.env.DATABASE_URL],
-    keyspace: Bun.env.KEYSPACE,
+    localDataCenter: process.env.DATA_CENTER,
+    contactPoints: [process.env.DATABASE_URL],
+    keyspace: process.env.KEYSPACE,
   });
 
   log(pad(cols.dim("Connecting to database..."), { x: 2 }));
@@ -80,6 +85,13 @@ async function migrate({
 }
 
 migrate({
-  tables: [messageByChatId, userContacts],
+  tables: [
+    messageByChatId,
+    contactByHandle,
+    contactByUserId,
+    userByPhone,
+    userByEmail,
+    userById,
+  ],
   udts: [lastMessage],
 });

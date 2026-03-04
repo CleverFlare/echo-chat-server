@@ -1,4 +1,4 @@
-import { AppError } from "@/shared/app-error";
+import { AppError } from "@/utils/app-error";
 import { getUserByUsername } from "./auth.repository";
 import { StatusCodes } from "http-status-codes";
 import { compare } from "bcrypt";

@@ -1,4 +1,4 @@
-import { auth } from "@/shared/auth";
+import auth from "@/utils/auth";
 import { Elysia } from "elysia";
 
 export const authContext = new Elysia().derive(

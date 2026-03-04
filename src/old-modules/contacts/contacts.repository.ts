@@ -1,5 +1,5 @@
-import { AppError } from "@/shared/app-error";
-import { client } from "@/shared/database";
+import { AppError } from "@/utils/app-error";
+import { client } from "@/utils/database";
 import { logger } from "@/shared/logger";
 import { StatusCodes } from "http-status-codes";
 
