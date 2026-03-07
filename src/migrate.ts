@@ -1,17 +1,19 @@
 import { cols, log, pad, warn } from "@monitext/nprint";
 import { CQL } from "./cql";
-import { CreateTableBuilder } from "./cql/builder/create-table/builder";
-import { CreateTypeBuilder } from "./cql/builder/create-type/builder";
 import { CreateTypeBuilderInput } from "./cql/builder/create-type/types";
 import { TableContext } from "./cql/types";
 import {
-  lastMessage,
-  contactByUserId,
-  contactByHandle,
+  people,
+  friendRequests,
+  blocks,
+  friends,
+  friendRequestsBySenderId,
+  chats,
 } from "./modules/contacts/schema";
-import { messageByChatId } from "./modules/messages/schema";
 import { exit } from "process";
 import { userByEmail, userById, userByPhone } from "./modules/auth/schema";
+import { CreateTableContext } from "./cql/builder/create-table/context";
+import { CreateTypeContext } from "./cql/builder/create-type/context";
 
 warn(
   pad(cols.yellow("⚠️ Migrations reset the schemas you provide."), { x: 2 }),
@@ -22,8 +24,8 @@ async function migrate({
   tables,
   udts,
 }: {
-  tables: CreateTableBuilder<TableContext>[];
-  udts: CreateTypeBuilder<CreateTypeBuilderInput>[];
+  tables: CreateTableContext<TableContext>[];
+  udts: CreateTypeContext<CreateTypeBuilderInput>[];
 }) {
   const db = new CQL({
     localDataCenter: process.env.DATA_CENTER,
@@ -36,8 +38,8 @@ async function migrate({
   await db.connect();
 
   for (const schema of [...tables, ...udts]) {
-    if (schema instanceof CreateTableBuilder) {
-      const table = schema.build();
+    if (schema instanceof CreateTableContext) {
+      const table = schema;
       await table.drop().build().execute();
       log(
         pad(`✅ Successfully dropped ${table.context.table} to rebuild it.`, {
@@ -45,8 +47,8 @@ async function migrate({
         }),
       );
     }
-    if (schema instanceof CreateTypeBuilder) {
-      const type = schema.build();
+    if (schema instanceof CreateTypeContext) {
+      const type = schema;
       await type.drop().build().execute();
       log(
         pad(`✅ Successfully dropped ${type.context.type} to rebuild it.`, {
@@ -57,8 +59,8 @@ async function migrate({
   }
 
   for (const schema of [...udts, ...tables]) {
-    if (schema instanceof CreateTableBuilder) {
-      const table = schema.build();
+    if (schema instanceof CreateTableContext) {
+      const table = schema;
       await table.execute();
       log(
         pad(`✅ Successfully built ${table.context.table}.`, {
@@ -66,8 +68,8 @@ async function migrate({
         }),
       );
     }
-    if (schema instanceof CreateTypeBuilder) {
-      const type = schema.build();
+    if (schema instanceof CreateTypeContext) {
+      const type = schema;
       await type.execute();
       log(
         pad(`✅ Successfully built ${type.context.type}.`, {
@@ -86,12 +88,15 @@ async function migrate({
 
 migrate({
   tables: [
-    messageByChatId,
-    contactByHandle,
-    contactByUserId,
+    people,
+    chats,
+    friendRequests,
+    blocks,
+    friends,
+    friendRequestsBySenderId,
     userByPhone,
     userByEmail,
     userById,
   ],
-  udts: [lastMessage],
+  udts: [],
 });

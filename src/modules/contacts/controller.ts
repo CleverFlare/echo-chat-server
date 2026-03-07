@@ -1,50 +1,170 @@
 import { authMiddleware } from "@/utils/auth";
 import Elysia from "elysia";
 import { z } from "zod/v4";
-import { addContact } from "./add-contact.service";
 import { publish, subscribe } from "@/event-bus";
-import { getContact } from "./get-contact.service";
 import logger from "@/utils/logger";
-import { getContacts } from "./get-contacts.service";
+import { getChatsByUserId } from "./chats.service";
+import {
+  blockPerson,
+  sendFriendRequestByEmail,
+  sendFriendRequestByHandle,
+  sendFriendRequestById,
+  sendFriendRequestByPhone,
+} from "./friends.service";
+import {
+  getUserById,
+  getUserIdByEmail,
+  getUserIdByHandle,
+  getUserIdByPhone,
+} from "../auth/user.service";
 
 export const contactsRouter = new Elysia()
   .use(authMiddleware)
   .get(
-    "/contacts",
-    async ({ status, user }) => {
-      const contactsResult = await getContacts(user.id);
+    "/chats",
+    async ({ user, status }) => {
+      const chats = await getChatsByUserId(user.id);
 
-      return contactsResult.match({
-        Ok: (contacts) => status("OK", contacts) as unknown,
-        Err: (error) => status("Internal Server Error", error.message),
-      });
+      if (chats.isErr()) {
+        logger.error(chats.unwrapErr().message);
+
+        return status(
+          "Internal Server Error",
+          "Please check the server logs for details",
+        );
+      }
+
+      return status("OK", chats.unwrap());
     },
     { auth: true },
   )
   .post(
-    "/add-contact",
+    "/add-friend-by-phone",
+    async ({ user, body: { phone }, status }) => {
+      const addFriendResult = await sendFriendRequestByPhone(user.id, phone);
+
+      if (addFriendResult.isErr()) {
+        logger.error(addFriendResult.unwrapErr().message);
+
+        return status(
+          "Internal Server Error",
+          "Please check the server logs for details",
+        );
+      }
+
+      const personIdResult = await getUserIdByPhone(phone);
+
+      if (personIdResult.isOk()) {
+        const id = personIdResult.unwrap();
+
+        publish("new-friend-requests:[id]", { id }, addFriendResult.unwrap());
+      }
+
+      return status("OK", "Added successfully");
+    },
+    { auth: true, body: z.object({ phone: z.string() }) },
+  )
+  .post(
+    "/add-friend-by-email",
+    async ({ user, body: { email }, status }) => {
+      const addFriendResult = await sendFriendRequestByEmail(user.id, email);
+
+      if (addFriendResult.isErr()) {
+        logger.error(addFriendResult.unwrapErr().message);
+
+        return status(
+          "Internal Server Error",
+          "Please check the server logs for details",
+        );
+      }
+
+      const personIdResult = await getUserIdByEmail(email);
+
+      if (personIdResult.isOk()) {
+        const id = personIdResult.unwrap();
+
+        publish("new-friend-requests:[id]", { id }, addFriendResult.unwrap());
+      }
+
+      return status("OK", "Added successfully");
+    },
+    { auth: true, body: z.object({ email: z.string() }) },
+  )
+  .post(
+    "/add-friend-by-handle",
     async ({ user, body: { handle }, status }) => {
-      await addContact(user.id, handle);
+      const addFriendResult = await sendFriendRequestByHandle(user.id, handle);
 
-      const contactResult = await getContact(handle);
+      if (addFriendResult.isErr()) {
+        logger.error(addFriendResult.unwrapErr().message);
 
-      contactResult.match({
-        Ok: (contact) => publish(`new-contacts:${contact.user_id}`, contact),
-        // eslint-disable-next-line
-        Err: (_) => logger.error("Couldn't notify user of a new contact"),
-      });
+        return status(
+          "Internal Server Error",
+          "Please check the server logs for details",
+        );
+      }
 
-      return status("Created", "Added");
+      const personIdResult = await getUserIdByHandle(handle);
+
+      if (personIdResult.isOk()) {
+        const id = personIdResult.unwrap();
+
+        publish("new-friend-requests:[id]", { id }, addFriendResult.unwrap());
+      }
+
+      return status("OK", "Added successfully");
+    },
+    { auth: true, body: z.object({ handle: z.string() }) },
+  )
+  .post(
+    "/add-friend-by-id",
+    async ({ user, body: { id }, status }) => {
+      const addFriendResult = await sendFriendRequestById(user.id, id);
+
+      if (addFriendResult.isErr()) {
+        logger.error(addFriendResult.unwrapErr().message);
+
+        return status(
+          "Internal Server Error",
+          "Please check the server logs for details",
+        );
+      }
+
+      publish("new-friend-requests:[id]", { id }, addFriendResult.unwrap());
+
+      return status("OK", "Added successfully");
+    },
+    { auth: true, body: z.object({ id: z.string() }) },
+  )
+  .post(
+    "/block",
+    async ({ user, body: { userId }, status }) => {
+      const blockResult = await blockPerson(user.id, userId);
+
+      if (blockResult.isErr()) {
+        logger.error(blockResult.unwrapErr().message);
+
+        return status(
+          "Internal Server Error",
+          "Please check the server logs for details",
+        );
+      }
+
+      return status("OK", { userId });
     },
     {
-      body: z.object({ handle: z.string() }),
       auth: true,
+      body: z.object({ userId: z.string() }),
     },
   )
-  .ws("/new-contacts", {
+  .ws("/new-friend-request", {
     open({ data: { user }, send }) {
-      subscribe(`new-contacts:${user.id}`, (contact) => {
-        send(contact);
+      subscribe("new-friend-requests:[id]", { id: user.id }, async (user) => {
+        const userResult = await getUserById(user.senderId);
+
+        if (userResult.isOk()) {
+          send(userResult.unwrap());
+        }
       });
     },
     auth: true,

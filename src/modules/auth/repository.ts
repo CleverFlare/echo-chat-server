@@ -1,5 +1,5 @@
 import { InferSchema } from "@/cql/types";
-import { userByEmail, userById, userByPhone } from "./schema";
+import { userByEmail, userByHandle, userById, userByPhone } from "./schema";
 import { Option, Result } from "@/utils/rust-types";
 
 type UserById = typeof userById;
@@ -11,6 +11,72 @@ export async function findUserById(
     const results = await userById
       .select("*")
       .where("id", "=", id)
+      .build()
+      .execute();
+
+    if (results.length === 0 || results[0] === undefined) {
+      return Result.Ok(Option.None());
+    }
+
+    const user = results[0];
+
+    return Result.Ok(Option.Some(user));
+  } catch (err) {
+    return Result.Err(err as Error);
+  }
+}
+
+export async function findUserIdByHandle(
+  handle: string,
+): Promise<Result<Option<InferSchema<typeof userByHandle>>, Error>> {
+  try {
+    const results = await userByHandle
+      .select("*")
+      .where("handle", "=", handle)
+      .build()
+      .execute();
+
+    if (results.length === 0 || results[0] === undefined) {
+      return Result.Ok(Option.None());
+    }
+
+    const user = results[0];
+
+    return Result.Ok(Option.Some(user));
+  } catch (err) {
+    return Result.Err(err as Error);
+  }
+}
+
+export async function findUserIdByEmail(
+  email: string,
+): Promise<Result<Option<InferSchema<typeof userByEmail>>, Error>> {
+  try {
+    const results = await userByEmail
+      .select("*")
+      .where("email", "=", email)
+      .build()
+      .execute();
+
+    if (results.length === 0 || results[0] === undefined) {
+      return Result.Ok(Option.None());
+    }
+
+    const user = results[0];
+
+    return Result.Ok(Option.Some(user));
+  } catch (err) {
+    return Result.Err(err as Error);
+  }
+}
+
+export async function findUserIdByPhone(
+  email: string,
+): Promise<Result<Option<InferSchema<typeof userByPhone>>, Error>> {
+  try {
+    const results = await userByPhone
+      .select("*")
+      .where("phone", "=", email)
       .build()
       .execute();
 
