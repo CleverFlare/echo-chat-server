@@ -2,8 +2,6 @@ import { WithOption } from "@/cql/with-options/types";
 import { CreateTableBuilderInput } from "./types";
 import { Schema, TableContext } from "../../types";
 import { CreateTableContext } from "./context";
-import { snakeCase } from "change-case";
-import { SnakeCase, SnakeCasedProperties } from "type-fest";
 import { Client } from "cassandra-driver";
 
 export class CreateTableBuilder<const TState extends CreateTableBuilderInput> {
@@ -28,19 +26,19 @@ export class CreateTableBuilder<const TState extends CreateTableBuilderInput> {
 
   keyspace<const Keyspace extends string>(
     name: Keyspace,
-  ): CreateTableBuilder<TState & { keyspace: SnakeCase<Keyspace> }> {
+  ): CreateTableBuilder<TState & { keyspace: Keyspace }> {
     return this.clone({
       ...this.#actual,
-      keyspace: snakeCase(name) as SnakeCase<Keyspace>,
+      keyspace: name,
     });
   }
 
   table<const Table extends string>(
     name: Table,
-  ): CreateTableBuilder<TState & { table: SnakeCase<Table> }> {
+  ): CreateTableBuilder<TState & { table: Table }> {
     return this.clone({
       ...this.#actual,
-      table: snakeCase(name) as SnakeCase<Table>,
+      table: name,
     });
   }
 
@@ -66,11 +64,7 @@ export class CreateTableBuilder<const TState extends CreateTableBuilderInput> {
   }
 
   schema<const C extends Schema>(columns: C) {
-    const schema = Object.entries(columns).reduce(
-      (prev, [key, value]) => ({ ...prev, [snakeCase(key)]: value }),
-      {},
-    ) as SnakeCasedProperties<C>;
-    return this.clone({ ...this.#actual, columns: schema });
+    return this.clone({ ...this.#actual, columns });
   }
 
   // Overload 1: Single partition key
@@ -168,7 +162,7 @@ export class CreateTableBuilder<const TState extends CreateTableBuilderInput> {
     if (this.#actual.clusteringOrderBy) {
       const clusteringOrder = Object.entries(this.#actual.clusteringOrderBy);
       parts.push(
-        `CLUSTERING ORDER BY (${clusteringOrder.map(([key, value]) => `${key} ${value}`).join(", ")})`,
+        `CLUSTERING ORDER BY (${clusteringOrder.map(([key, value]) => `"${key}" ${value}`).join(", ")})`,
       );
     }
 
@@ -179,8 +173,8 @@ export class CreateTableBuilder<const TState extends CreateTableBuilderInput> {
 
   private assembleSchema(this: CreateTableBuilder<TState & TableContext>) {
     const primaryKey = [
-      this.#actual.partitionKeys,
-      ...this.#actual.clusteringKeys,
+      this.#actual.partitionKeys.map((key) => `"${key}"`),
+      ...this.#actual.clusteringKeys.map((key) => `"${key}"`),
     ];
 
     // Format the partition key to make it ready
@@ -191,7 +185,7 @@ export class CreateTableBuilder<const TState extends CreateTableBuilderInput> {
         : primaryKey[0].toString();
 
     const columns = Object.entries(this.#actual.columns).map(
-      ([key, value]) => `${key} ${value.cql}`,
+      ([key, value]) => `"${key}" ${value.cql}`,
     );
 
     return `(${columns.join(", ")}, PRIMARY KEY ( ${primaryKey.join(", ")} ))`;
@@ -201,8 +195,8 @@ export class CreateTableBuilder<const TState extends CreateTableBuilderInput> {
     const parts = ["CREATE", "TABLE"];
 
     if (this.#actual.keyspace)
-      parts.push(`${this.#actual.keyspace}.${this.#actual.table}`);
-    else parts.push(this.#actual.table);
+      parts.push(`"${this.#actual.keyspace}"."${this.#actual.table}"`);
+    else parts.push(`"${this.#actual.table}"`);
 
     if (this.#actual.ifNotExists) parts.push("IF NOT EXISTS");
 

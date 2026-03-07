@@ -22,18 +22,18 @@ describe("DropTypeBuilder", () => {
   describe("keyspace()", () => {
     it("should set the keyspace name", () => {
       const builder = DropTypeBuilder.create(mockClient)
-        .keyspace("my_keyspace")
+        .keyspace("myKeyspace")
         .type("address");
 
-      expect(builder.toCQL()).toContain("my_keyspace.address");
+      expect(builder.toCQL()).toContain('"myKeyspace"."address"');
     });
 
     it("should handle various keyspace names", () => {
       const builder = DropTypeBuilder.create(mockClient)
-        .keyspace("test_keyspace_123")
-        .type("user_type");
+        .keyspace("testKeyspace123")
+        .type("userType");
 
-      expect(builder.toCQL()).toContain("test_keyspace_123.user_type");
+      expect(builder.toCQL()).toContain('"testKeyspace123"."userType"');
     });
   });
 
@@ -41,20 +41,20 @@ describe("DropTypeBuilder", () => {
     it("should set the type name", () => {
       const builder = DropTypeBuilder.create(mockClient).type("address");
 
-      expect(builder.toCQL()).toContain("address");
+      expect(builder.toCQL()).toContain('"address"');
     });
 
     it("should preserve type name casing", () => {
-      const builder = DropTypeBuilder.create(mockClient).type("UserAddress");
+      const builder = DropTypeBuilder.create(mockClient).type("userAddress");
 
-      expect(builder.toCQL()).toContain("UserAddress");
+      expect(builder.toCQL()).toContain('"userAddress"');
     });
 
-    it("should handle type names with underscores", () => {
+    it("should handle camelCase type names", () => {
       const builder =
-        DropTypeBuilder.create(mockClient).type("user_profile_data");
+        DropTypeBuilder.create(mockClient).type("userProfileData");
 
-      expect(builder.toCQL()).toContain("user_profile_data");
+      expect(builder.toCQL()).toContain('"userProfileData"');
     });
   });
 
@@ -91,7 +91,7 @@ describe("DropTypeBuilder", () => {
 
       const cqlString = builder.toCQL();
       const ifExistsIndex = cqlString.indexOf("IF EXISTS");
-      const typeIndex = cqlString.indexOf("test.address");
+      const typeIndex = cqlString.indexOf('"test"."address"');
       expect(ifExistsIndex).toBeLessThan(typeIndex);
     });
   });
@@ -102,17 +102,17 @@ describe("DropTypeBuilder", () => {
 
       const cqlString = builder.toCQL();
       expect(cqlString).toMatch(/^DROP TYPE/);
-      expect(cqlString).toContain("address");
+      expect(cqlString).toContain('"address"');
       expect(cqlString).toMatch(/;$/);
     });
 
     it("should generate DROP TYPE with keyspace", () => {
       const builder = DropTypeBuilder.create(mockClient)
-        .keyspace("test_keyspace")
+        .keyspace("testKeyspace")
         .type("address");
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toContain("test_keyspace.address");
+      expect(cqlString).toContain('"testKeyspace"."address"');
     });
 
     it("should generate DROP TYPE IF EXISTS", () => {
@@ -126,19 +126,19 @@ describe("DropTypeBuilder", () => {
 
     it("should generate complete CQL statement", () => {
       const builder = DropTypeBuilder.create(mockClient)
-        .keyspace("my_keyspace")
-        .type("full_address")
+        .keyspace("myKeyspace")
+        .type("fullAddress")
         .ifExists();
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toBe("DROP TYPE IF EXISTS my_keyspace.full_address;");
+      expect(cqlString).toBe('DROP TYPE IF EXISTS "myKeyspace"."fullAddress";');
     });
 
     it("should generate type without keyspace", () => {
-      const builder = DropTypeBuilder.create(mockClient).type("simple_type");
+      const builder = DropTypeBuilder.create(mockClient).type("simpleType");
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toBe("DROP TYPE simple_type;");
+      expect(cqlString).toBe('DROP TYPE "simpleType";');
       expect(cqlString).not.toContain(".");
     });
 
@@ -181,7 +181,7 @@ describe("DropTypeBuilder", () => {
         await context.execute();
 
         expect(mockClient.execute).toHaveBeenCalledWith(
-          expect.stringContaining("DROP TYPE address"),
+          expect.stringContaining('DROP TYPE "address"'),
         );
       });
 
@@ -194,7 +194,7 @@ describe("DropTypeBuilder", () => {
         await context.execute();
 
         expect(mockClient.execute).toHaveBeenCalledWith(
-          "DROP TYPE test.address;",
+          'DROP TYPE "test"."address";',
         );
       });
 
@@ -207,7 +207,7 @@ describe("DropTypeBuilder", () => {
         await context.execute();
 
         expect(mockClient.execute).toHaveBeenCalledWith(
-          "DROP TYPE IF EXISTS address;",
+          'DROP TYPE IF EXISTS "address";',
         );
       });
 
@@ -230,7 +230,7 @@ describe("DropTypeBuilder", () => {
 
         const cqlString = context.toCQL();
         expect(cqlString).toContain("DROP TYPE");
-        expect(cqlString).toContain("address");
+        expect(cqlString).toContain('"address"');
       });
     });
   });
@@ -259,8 +259,8 @@ describe("DropTypeBuilder", () => {
       const base = DropTypeBuilder.create(mockClient).type("address");
       const withKeyspace = base.keyspace("test");
 
-      expect(base.toCQL()).toBe("DROP TYPE address;");
-      expect(withKeyspace.toCQL()).toBe("DROP TYPE test.address;");
+      expect(base.toCQL()).toBe('DROP TYPE "address";');
+      expect(withKeyspace.toCQL()).toBe('DROP TYPE "test"."address";');
     });
   });
 
@@ -268,13 +268,13 @@ describe("DropTypeBuilder", () => {
     it("should handle simple type drop", () => {
       const builder = DropTypeBuilder.create(mockClient).type("minimal");
 
-      expect(builder.toCQL()).toBe("DROP TYPE minimal;");
+      expect(builder.toCQL()).toBe('DROP TYPE "minimal";');
     });
 
-    it("should handle special characters in type names", () => {
-      const builder = DropTypeBuilder.create(mockClient).type("type_v1_final");
+    it("should handle camelCase type names", () => {
+      const builder = DropTypeBuilder.create(mockClient).type("typeV1Final");
 
-      expect(builder.toCQL()).toContain("type_v1_final");
+      expect(builder.toCQL()).toContain('"typeV1Final"');
     });
 
     it("should throw error when building without type name", () => {
@@ -296,18 +296,18 @@ describe("DropTypeBuilder", () => {
       await context.execute();
 
       expect(mockClient.execute).toHaveBeenCalledWith(
-        "DROP TYPE IF EXISTS app.address;",
+        'DROP TYPE IF EXISTS "app"."address";',
       );
     });
 
     it("should drop a user profile type without if exists", async () => {
-      const builder = DropTypeBuilder.create(mockClient).type("user_profile");
+      const builder = DropTypeBuilder.create(mockClient).type("userProfile");
 
       const context = builder.build();
       await context.execute();
 
       expect(mockClient.execute).toHaveBeenCalledWith(
-        "DROP TYPE user_profile;",
+        'DROP TYPE "userProfile";',
       );
     });
 
@@ -317,7 +317,7 @@ describe("DropTypeBuilder", () => {
         .type("coordinates")
         .ifExists();
 
-      expect(builder.toCQL()).toBe("DROP TYPE IF EXISTS geo.coordinates;");
+      expect(builder.toCQL()).toBe('DROP TYPE IF EXISTS "geo"."coordinates";');
     });
   });
 });

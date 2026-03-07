@@ -310,17 +310,17 @@ export class UpdateBuilder<
     const formattedUpdates: string[] = this.#actual.updates.map((update) => {
       switch (update.kind) {
         case "replace":
-          return `${update.column} = ?`;
+          return `"${update.column}" = ?`;
         case "append":
-          return `${update.column} = ${update.column} + ?`;
+          return `"${update.column}" = "${update.column}" + ?`;
         case "prepend":
-          return `${update.column} = ? + ${update.column}`;
+          return `"${update.column}" = ? + "${update.column}"`;
         case "remove":
-          return `${update.column} = ${update.column} - ?`;
+          return `"${update.column}" = "${update.column}" - ?`;
         case "setField":
-          return `${update.column}.${update.field} = ?`;
+          return `"${update.column}"."${update.field}" = ?`;
         case "setIndex":
-          return `${update.column}[${update.key}] = ?`;
+          return `"${update.column}"[${update.key}] = ?`;
         default:
           return "";
       }
@@ -330,7 +330,7 @@ export class UpdateBuilder<
   }
 
   private assembleConditions(conditions: readonly [string, string, unknown][]) {
-    return conditions.map(([col, op]) => `${col} ${op} ?`).join(" AND ");
+    return conditions.map(([col, op]) => `"${col}" ${op} ?`).join(" AND ");
   }
 
   private assembleOptions(
@@ -358,9 +358,9 @@ export class UpdateBuilder<
     const parts = ["UPDATE"];
 
     if (this.#context.keyspace) {
-      parts.push(`${this.#context.keyspace}.${this.#context.table}`);
+      parts.push(`"${this.#context.keyspace}"."${this.#context.table}"`);
     } else {
-      parts.push(this.#context.table);
+      parts.push(`"${this.#context.table}"`);
     }
 
     const options = this.assembleOptions();

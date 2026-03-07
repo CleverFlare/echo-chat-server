@@ -48,8 +48,8 @@ export class DropTableBuilder<TState extends Partial<DropTableBuilderInput>> {
     if (!this.#actual.table) throw new Error("Table name is required");
 
     if (this.#actual.keyspace)
-      parts.push(`${this.#actual.keyspace}.${this.#actual.table}`);
-    else parts.push(this.#actual.table);
+      parts.push(`"${this.#actual.keyspace}"."${this.#actual.table}"`);
+    else parts.push(`"${this.#actual.table}"`);
 
     return parts.join(" ") + ";";
   }

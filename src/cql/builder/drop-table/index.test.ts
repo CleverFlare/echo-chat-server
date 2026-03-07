@@ -22,18 +22,18 @@ describe("DropTableBuilder", () => {
   describe("keyspace()", () => {
     it("should set the keyspace name", () => {
       const builder = DropTableBuilder.create(mockClient)
-        .keyspace("my_keyspace")
+        .keyspace("myKeyspace")
         .table("users");
 
-      expect(builder.toCQL()).toContain("my_keyspace.users");
+      expect(builder.toCQL()).toContain('"myKeyspace"."users"');
     });
 
     it("should handle various keyspace names", () => {
       const builder = DropTableBuilder.create(mockClient)
-        .keyspace("test_keyspace_123")
+        .keyspace("testKeyspace123")
         .table("events");
 
-      expect(builder.toCQL()).toContain("test_keyspace_123.events");
+      expect(builder.toCQL()).toContain('"testKeyspace123"."events"');
     });
   });
 
@@ -41,20 +41,20 @@ describe("DropTableBuilder", () => {
     it("should set the table name", () => {
       const builder = DropTableBuilder.create(mockClient).table("users");
 
-      expect(builder.toCQL()).toContain("users");
+      expect(builder.toCQL()).toContain('"users"');
     });
 
     it("should preserve table name casing", () => {
-      const builder = DropTableBuilder.create(mockClient).table("UserProfiles");
+      const builder = DropTableBuilder.create(mockClient).table("userProfiles");
 
-      expect(builder.toCQL()).toContain("UserProfiles");
+      expect(builder.toCQL()).toContain('"userProfiles"');
     });
 
-    it("should handle table names with underscores", () => {
+    it("should handle camelCase table names", () => {
       const builder =
-        DropTableBuilder.create(mockClient).table("user_profile_data");
+        DropTableBuilder.create(mockClient).table("userProfileData");
 
-      expect(builder.toCQL()).toContain("user_profile_data");
+      expect(builder.toCQL()).toContain('"userProfileData"');
     });
   });
 
@@ -91,7 +91,7 @@ describe("DropTableBuilder", () => {
 
       const cqlString = builder.toCQL();
       const ifExistsIndex = cqlString.indexOf("IF EXISTS");
-      const tableIndex = cqlString.indexOf("test.users");
+      const tableIndex = cqlString.indexOf('"test"."users"');
       expect(ifExistsIndex).toBeLessThan(tableIndex);
     });
   });
@@ -102,17 +102,17 @@ describe("DropTableBuilder", () => {
 
       const cqlString = builder.toCQL();
       expect(cqlString).toMatch(/^DROP TABLE/);
-      expect(cqlString).toContain("users");
+      expect(cqlString).toContain('"users"');
       expect(cqlString).toMatch(/;$/);
     });
 
     it("should generate DROP TABLE with keyspace", () => {
       const builder = DropTableBuilder.create(mockClient)
-        .keyspace("test_keyspace")
+        .keyspace("testKeyspace")
         .table("users");
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toContain("test_keyspace.users");
+      expect(cqlString).toContain('"testKeyspace"."users"');
     });
 
     it("should generate DROP TABLE IF EXISTS", () => {
@@ -126,19 +126,19 @@ describe("DropTableBuilder", () => {
 
     it("should generate complete CQL statement", () => {
       const builder = DropTableBuilder.create(mockClient)
-        .keyspace("my_keyspace")
-        .table("user_events")
+        .keyspace("myKeyspace")
+        .table("userEvents")
         .ifExists();
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toBe("DROP TABLE IF EXISTS my_keyspace.user_events;");
+      expect(cqlString).toBe('DROP TABLE IF EXISTS "myKeyspace"."userEvents";');
     });
 
     it("should generate table without keyspace", () => {
-      const builder = DropTableBuilder.create(mockClient).table("simple_table");
+      const builder = DropTableBuilder.create(mockClient).table("simpleTable");
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toBe("DROP TABLE simple_table;");
+      expect(cqlString).toBe('DROP TABLE "simpleTable";');
       expect(cqlString).not.toContain(".");
     });
 
@@ -181,7 +181,7 @@ describe("DropTableBuilder", () => {
         await context.execute();
 
         expect(mockClient.execute).toHaveBeenCalledWith(
-          expect.stringContaining("DROP TABLE users"),
+          expect.stringContaining('DROP TABLE "users"'),
         );
       });
 
@@ -194,7 +194,7 @@ describe("DropTableBuilder", () => {
         await context.execute();
 
         expect(mockClient.execute).toHaveBeenCalledWith(
-          "DROP TABLE test.users;",
+          'DROP TABLE "test"."users";',
         );
       });
 
@@ -207,7 +207,7 @@ describe("DropTableBuilder", () => {
         await context.execute();
 
         expect(mockClient.execute).toHaveBeenCalledWith(
-          "DROP TABLE IF EXISTS users;",
+          'DROP TABLE IF EXISTS "users";',
         );
       });
 
@@ -230,7 +230,7 @@ describe("DropTableBuilder", () => {
 
         const cqlString = context.toCQL();
         expect(cqlString).toContain("DROP TABLE");
-        expect(cqlString).toContain("users");
+        expect(cqlString).toContain('"users"');
       });
     });
   });
@@ -259,8 +259,8 @@ describe("DropTableBuilder", () => {
       const base = DropTableBuilder.create(mockClient).table("users");
       const withKeyspace = base.keyspace("test");
 
-      expect(base.toCQL()).toBe("DROP TABLE users;");
-      expect(withKeyspace.toCQL()).toBe("DROP TABLE test.users;");
+      expect(base.toCQL()).toBe('DROP TABLE "users";');
+      expect(withKeyspace.toCQL()).toBe('DROP TABLE "test"."users";');
     });
   });
 
@@ -268,14 +268,13 @@ describe("DropTableBuilder", () => {
     it("should handle simple table drop", () => {
       const builder = DropTableBuilder.create(mockClient).table("minimal");
 
-      expect(builder.toCQL()).toBe("DROP TABLE minimal;");
+      expect(builder.toCQL()).toBe('DROP TABLE "minimal";');
     });
 
-    it("should handle special characters in table names", () => {
-      const builder =
-        DropTableBuilder.create(mockClient).table("table_v1_final");
+    it("should handle camelCase table names", () => {
+      const builder = DropTableBuilder.create(mockClient).table("tableV1Final");
 
-      expect(builder.toCQL()).toContain("table_v1_final");
+      expect(builder.toCQL()).toContain('"tableV1Final"');
     });
 
     it("should throw error when building without table name", () => {
@@ -297,42 +296,42 @@ describe("DropTableBuilder", () => {
       await context.execute();
 
       expect(mockClient.execute).toHaveBeenCalledWith(
-        "DROP TABLE IF EXISTS app.users;",
+        'DROP TABLE IF EXISTS "app"."users";',
       );
     });
 
     it("should drop an events table without if exists", async () => {
-      const builder = DropTableBuilder.create(mockClient).table("user_events");
+      const builder = DropTableBuilder.create(mockClient).table("userEvents");
 
       const context = builder.build();
       await context.execute();
 
       expect(mockClient.execute).toHaveBeenCalledWith(
-        "DROP TABLE user_events;",
+        'DROP TABLE "userEvents";',
       );
     });
 
     it("should safely drop a table that might not exist", async () => {
       const builder = DropTableBuilder.create(mockClient)
         .keyspace("analytics")
-        .table("sensor_data")
+        .table("sensorData")
         .ifExists();
 
       expect(builder.toCQL()).toBe(
-        "DROP TABLE IF EXISTS analytics.sensor_data;",
+        'DROP TABLE IF EXISTS "analytics"."sensorData";',
       );
     });
 
     it("should drop a temporary table", async () => {
       const builder = DropTableBuilder.create(mockClient)
-        .table("temp_processing")
+        .table("tempProcessing")
         .ifExists();
 
       const context = builder.build();
       await context.execute();
 
       expect(mockClient.execute).toHaveBeenCalledWith(
-        "DROP TABLE IF EXISTS temp_processing;",
+        'DROP TABLE IF EXISTS "tempProcessing";',
       );
     });
   });

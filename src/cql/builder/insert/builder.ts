@@ -77,7 +77,7 @@ export class InsertBuilder<
     this: InsertBuilder<TState & { values: InsertValues<TContext> }, TContext>,
   ) {
     const columns = Object.keys(this.#actual.values);
-    const columnList = columns.join(", ");
+    const columnList = columns.map((column) => `"${column}"`).join(", ");
     const valuePlaceholders = columns.map((key) => `:${key}`).join(", ");
 
     return `(${columnList}) VALUES (${valuePlaceholders})`;
@@ -108,9 +108,9 @@ export class InsertBuilder<
     const parts = ["INSERT", "INTO"];
 
     if (this.#context.keyspace) {
-      parts.push(`${this.#context.keyspace}.${this.#context.table}`);
+      parts.push(`"${this.#context.keyspace}"."${this.#context.table}"`);
     } else {
-      parts.push(this.#context.table);
+      parts.push(`"${this.#context.table}"`);
     }
 
     const values = this.assembleValues();

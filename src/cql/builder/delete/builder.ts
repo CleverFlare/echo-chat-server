@@ -279,11 +279,11 @@ export class DeleteBuilder<
         .map((d) => {
           switch (d.kind) {
             case "column":
-              return d.column;
+              return `"${d.column}"`;
             case "field":
-              return `${d.column}.${d.field}`;
+              return `"${d.column}"."${d.field}"`;
             case "index":
-              return `${d.column}[?]`;
+              return `"${d.column}"[?]`;
           }
         })
         .join(", ")
@@ -291,7 +291,7 @@ export class DeleteBuilder<
   }
 
   private assembleConditions(conditions: readonly [string, string, unknown][]) {
-    return conditions.map(([col, op]) => `${col} ${op} ?`).join(" AND ");
+    return conditions.map(([col, op]) => `"${col}" ${op} ?`).join(" AND ");
   }
 
   private buildCQL(
@@ -308,9 +308,9 @@ export class DeleteBuilder<
     parts.push("FROM");
 
     if (this.#context.keyspace) {
-      parts.push(`${this.#context.keyspace}.${this.#context.table}`);
+      parts.push(`"${this.#context.keyspace}"."${this.#context.table}"`);
     } else {
-      parts.push(this.#context.table);
+      parts.push(`"${this.#context.table}"`);
     }
 
     if (this.#actual.timestamp !== undefined) {

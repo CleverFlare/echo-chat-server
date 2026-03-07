@@ -71,9 +71,9 @@ describe("SelectBuilder", () => {
       const builder = SelectBuilder.from(mockClient, tableContext).select("id");
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toContain("SELECT id");
-      expect(cqlString).not.toContain("name");
-      expect(cqlString).not.toContain("email");
+      expect(cqlString).toContain('SELECT "id"');
+      expect(cqlString).not.toContain('"name"');
+      expect(cqlString).not.toContain('"email"');
     });
 
     it("should select multiple columns", () => {
@@ -84,7 +84,7 @@ describe("SelectBuilder", () => {
       );
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toContain("SELECT id, name, email");
+      expect(cqlString).toContain('SELECT "id", "name", "email"');
     });
 
     it("should select all available columns", () => {
@@ -96,7 +96,7 @@ describe("SelectBuilder", () => {
       );
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toContain("SELECT id, name, email, age");
+      expect(cqlString).toContain('SELECT "id", "name", "email", "age"');
     });
 
     it("should handle column selection in any order", () => {
@@ -107,28 +107,7 @@ describe("SelectBuilder", () => {
       );
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toContain("SELECT email, id, name");
-    });
-
-    it("should handle snake_case column names", () => {
-      const snakeTableContext = CreateTableBuilder.create(mockClient)
-        .table("users")
-        .schema({
-          userId: cql.scalar.uuid,
-          firstName: cql.scalar.text,
-          lastName: cql.scalar.text,
-        })
-        .primaryKey("user_id")
-        .build();
-
-      const builder = SelectBuilder.from(mockClient, snakeTableContext).select(
-        "user_id",
-        "first_name",
-      );
-
-      const cqlString = builder.toCQL();
-      expect(cqlString).toContain("user_id");
-      expect(cqlString).toContain("first_name");
+      expect(cqlString).toContain('SELECT "email", "id", "name"');
     });
   });
 
@@ -158,12 +137,12 @@ describe("SelectBuilder", () => {
           timestamp: cql.scalar.timestamp,
           data: cql.scalar.text,
         })
-        .primaryKey("user_id", "timestamp")
+        .primaryKey("userId", "timestamp")
         .build();
 
       const builder = SelectBuilder.from(mockClient, tableContext)
         .select("*")
-        .where("user_id", "=", "123e4567-e89b-12d3-a456-426614174000");
+        .where("userId", "=", "123e4567-e89b-12d3-a456-426614174000");
 
       expect(builder).toBeDefined();
     });
@@ -176,12 +155,12 @@ describe("SelectBuilder", () => {
           timestamp: cql.scalar.timestamp,
           data: cql.scalar.text,
         })
-        .primaryKey("user_id", "timestamp")
+        .primaryKey("userId", "timestamp")
         .build();
 
       const builder = SelectBuilder.from(mockClient, tableContext)
         .select("*")
-        .where("user_id", "=", "123e4567-e89b-12d3-a456-426614174000")
+        .where("userId", "=", "123e4567-e89b-12d3-a456-426614174000")
         .where("timestamp", ">", new Date());
 
       expect(builder).toBeDefined();
@@ -189,38 +168,38 @@ describe("SelectBuilder", () => {
 
     it("should support multiple WHERE conditions", () => {
       const tableContext = CreateTableBuilder.create(mockClient)
-        .table("sensor_data")
+        .table("sensorData")
         .schema({
           sensorId: cql.scalar.uuid,
           locationId: cql.scalar.uuid,
           timestamp: cql.scalar.timestamp,
           value: cql.scalar.double,
         })
-        .primaryKey(["sensor_id", "location_id"], "timestamp")
+        .primaryKey(["sensorId", "locationId"], "timestamp")
         .build();
 
       const builder = SelectBuilder.from(mockClient, tableContext)
         .select("*")
-        .where("sensor_id", "=", "123e4567-e89b-12d3-a456-426614174000")
-        .where("location_id", "=", "987fcdeb-51a2-43f7-8765-123456789abc");
+        .where("sensorId", "=", "123e4567-e89b-12d3-a456-426614174000")
+        .where("locationId", "=", "987fcdeb-51a2-43f7-8765-123456789abc");
 
       expect(builder).toBeDefined();
     });
 
     it("should support comparison operators on clustering keys", () => {
       const tableContext = CreateTableBuilder.create(mockClient)
-        .table("time_series")
+        .table("timeSeries")
         .schema({
           deviceId: cql.scalar.uuid,
           timestamp: cql.scalar.timestamp,
           reading: cql.scalar.double,
         })
-        .primaryKey("device_id", "timestamp")
+        .primaryKey("deviceId", "timestamp")
         .build();
 
       const builder = SelectBuilder.from(mockClient, tableContext)
         .select("*")
-        .where("device_id", "=", "123e4567-e89b-12d3-a456-426614174000")
+        .where("deviceId", "=", "123e4567-e89b-12d3-a456-426614174000")
         .where("timestamp", ">=", new Date("2024-01-01"));
 
       expect(builder).toBeDefined();
@@ -235,13 +214,13 @@ describe("SelectBuilder", () => {
           timestamp: cql.scalar.timestamp,
           data: cql.scalar.text,
         })
-        .primaryKey("user_id", "event_type", "timestamp")
+        .primaryKey("userId", "eventType", "timestamp")
         .build();
 
       const builder = SelectBuilder.from(mockClient, tableContext)
         .select("data", "timestamp")
-        .where("user_id", "=", "123e4567-e89b-12d3-a456-426614174000")
-        .where("event_type", "=", "click")
+        .where("userId", "=", "123e4567-e89b-12d3-a456-426614174000")
+        .where("eventType", "=", "click")
         .where("timestamp", ">", new Date("2024-01-01"));
 
       expect(builder).toBeDefined();
@@ -259,7 +238,7 @@ describe("SelectBuilder", () => {
       const builder = SelectBuilder.from(mockClient, tableContext).select("id");
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toMatch(/^SELECT id FROM users;$/);
+      expect(cqlString).toMatch(/^SELECT "id" FROM "users";$/);
     });
 
     it("should generate SELECT with multiple columns", () => {
@@ -280,7 +259,7 @@ describe("SelectBuilder", () => {
       );
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toBe("SELECT id, name, email FROM users;");
+      expect(cqlString).toBe('SELECT "id", "name", "email" FROM "users";');
     });
 
     it("should generate SELECT * statement", () => {
@@ -296,12 +275,12 @@ describe("SelectBuilder", () => {
       const builder = SelectBuilder.from(mockClient, tableContext).select("*");
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toBe("SELECT * FROM users;");
+      expect(cqlString).toBe('SELECT * FROM "users";');
     });
 
     it("should handle table names correctly", () => {
       const tableContext = CreateTableBuilder.create(mockClient)
-        .table("user_profiles")
+        .table("userProfiles")
         .schema({ id: cql.scalar.uuid })
         .primaryKey("id")
         .build();
@@ -309,7 +288,7 @@ describe("SelectBuilder", () => {
       const builder = SelectBuilder.from(mockClient, tableContext).select("*");
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toContain("FROM user_profiles");
+      expect(cqlString).toContain('FROM "userProfiles"');
     });
 
     it("should generate clean CQL with proper spacing", () => {
@@ -329,7 +308,7 @@ describe("SelectBuilder", () => {
 
       const cqlString = builder.toCQL();
       expect(cqlString).toMatch(/SELECT .+ FROM .+;/);
-      expect(cqlString).not.toContain("  "); // No double spaces
+      expect(cqlString).not.toContain("  ");
     });
 
     it("should end with semicolon", () => {
@@ -407,12 +386,12 @@ describe("SelectBuilder", () => {
           timestamp: cql.scalar.timestamp,
           metadata: cql.scalar.text,
         })
-        .primaryKey("user_id", "event_type", "timestamp")
+        .primaryKey("userId", "eventType", "timestamp")
         .build();
 
       const builder = SelectBuilder.from(mockClient, tableContext).select(
-        "user_id",
-        "event_type",
+        "userId",
+        "eventType",
         "timestamp",
       );
 
@@ -436,7 +415,7 @@ describe("SelectBuilder", () => {
 
         const cqlString = context.getCQL();
         expect(cqlString).toContain("SELECT");
-        expect(cqlString).toContain("FROM users");
+        expect(cqlString).toContain('FROM "users"');
       });
     });
 
@@ -455,7 +434,7 @@ describe("SelectBuilder", () => {
         await context.execute();
 
         expect(mockClient.execute).toHaveBeenCalledWith(
-          expect.stringContaining("SELECT id FROM users"),
+          expect.stringContaining('"id" FROM "users"'),
         );
       });
 
@@ -501,7 +480,7 @@ describe("SelectBuilder", () => {
         await context.execute();
 
         expect(mockClient.execute).toHaveBeenCalledWith(
-          "SELECT id, name, email FROM users;",
+          'SELECT "id", "name", "email" FROM "users";',
         );
       });
 
@@ -521,7 +500,9 @@ describe("SelectBuilder", () => {
 
         await context.execute();
 
-        expect(mockClient.execute).toHaveBeenCalledWith("SELECT * FROM users;");
+        expect(mockClient.execute).toHaveBeenCalledWith(
+          'SELECT * FROM "users";',
+        );
       });
 
       it("should handle execution errors", async () => {
@@ -610,8 +591,8 @@ describe("SelectBuilder", () => {
       const baseCQL = base.toCQL();
       const withNameCQL = withName.toCQL();
 
-      expect(baseCQL).toContain("SELECT id FROM");
-      expect(withNameCQL).toContain("SELECT id, name FROM");
+      expect(baseCQL).toContain('SELECT "id" FROM');
+      expect(withNameCQL).toContain('SELECT "id", "name" FROM');
       expect(baseCQL).not.toBe(withNameCQL);
     });
 
@@ -649,12 +630,12 @@ describe("SelectBuilder", () => {
         "value",
       );
 
-      expect(builder.toCQL()).toBe("SELECT value FROM counters;");
+      expect(builder.toCQL()).toBe('SELECT "value" FROM "counters";');
     });
 
     it("should handle tables with many columns", () => {
       const tableContext = CreateTableBuilder.create(mockClient)
-        .table("wide_table")
+        .table("wideTable")
         .schema({
           id: cql.scalar.uuid,
           col1: cql.scalar.text,
@@ -676,13 +657,13 @@ describe("SelectBuilder", () => {
       );
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toContain("col1");
-      expect(cqlString).toContain("col5");
+      expect(cqlString).toContain('"col1"');
+      expect(cqlString).toContain('"col5"');
     });
 
     it("should handle composite partition keys", () => {
       const tableContext = CreateTableBuilder.create(mockClient)
-        .table("multi_partition")
+        .table("multiPartition")
         .schema({
           part1: cql.scalar.uuid,
           part2: cql.scalar.text,
@@ -693,12 +674,12 @@ describe("SelectBuilder", () => {
 
       const builder = SelectBuilder.from(mockClient, tableContext).select("*");
 
-      expect(builder.toCQL()).toBe("SELECT * FROM multi_partition;");
+      expect(builder.toCQL()).toBe('SELECT * FROM "multiPartition";');
     });
 
     it("should handle complex clustering keys", () => {
       const tableContext = CreateTableBuilder.create(mockClient)
-        .table("time_series")
+        .table("timeSeries")
         .schema({
           deviceId: cql.scalar.uuid,
           year: cql.scalar.int,
@@ -706,11 +687,11 @@ describe("SelectBuilder", () => {
           day: cql.scalar.int,
           value: cql.scalar.double,
         })
-        .primaryKey("device_id", "year", "month", "day")
+        .primaryKey("deviceId", "year", "month", "day")
         .build();
 
       const builder = SelectBuilder.from(mockClient, tableContext).select(
-        "device_id",
+        "deviceId",
         "year",
         "month",
         "day",
@@ -718,11 +699,11 @@ describe("SelectBuilder", () => {
       );
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toContain("device_id");
-      expect(cqlString).toContain("year");
-      expect(cqlString).toContain("month");
-      expect(cqlString).toContain("day");
-      expect(cqlString).toContain("value");
+      expect(cqlString).toContain('"deviceId"');
+      expect(cqlString).toContain('"year"');
+      expect(cqlString).toContain('"month"');
+      expect(cqlString).toContain('"day"');
+      expect(cqlString).toContain('"value"');
     });
   });
 
@@ -737,31 +718,31 @@ describe("SelectBuilder", () => {
           email: cql.scalar.text,
           createdAt: cql.scalar.timestamp,
         })
-        .primaryKey("user_id")
+        .primaryKey("userId")
         .build();
 
       const builder = SelectBuilder.from(mockClient, tableContext).select(
-        "user_id",
+        "userId",
         "username",
         "email",
       );
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toContain("SELECT user_id, username, email");
-      expect(cqlString).toContain("FROM users");
+      expect(cqlString).toContain('SELECT "userId", "username", "email"');
+      expect(cqlString).toContain('FROM "app"."users"');
     });
 
     it("should select time-series data", () => {
       const tableContext = CreateTableBuilder.create(mockClient)
         .keyspace("metrics")
-        .table("sensor_readings")
+        .table("sensorReadings")
         .schema({
           sensorId: cql.scalar.uuid,
           timestamp: cql.scalar.timestamp,
           temperature: cql.scalar.double,
           humidity: cql.scalar.double,
         })
-        .primaryKey("sensor_id", "timestamp")
+        .primaryKey("sensorId", "timestamp")
         .build();
 
       const builder = SelectBuilder.from(mockClient, tableContext).select(
@@ -771,20 +752,20 @@ describe("SelectBuilder", () => {
       );
 
       expect(builder.toCQL()).toContain(
-        "SELECT timestamp, temperature, humidity",
+        'SELECT "timestamp", "temperature", "humidity"',
       );
     });
 
     it("should select from event log", async () => {
       const mockEvents = [
         {
-          user_id: "123e4567-e89b-12d3-a456-426614174000",
-          event_type: "login",
+          userId: "123e4567-e89b-12d3-a456-426614174000",
+          eventType: "login",
           timestamp: new Date(),
         },
         {
-          user_id: "123e4567-e89b-12d3-a456-426614174000",
-          event_type: "logout",
+          userId: "123e4567-e89b-12d3-a456-426614174000",
+          eventType: "logout",
           timestamp: new Date(),
         },
       ];
@@ -795,13 +776,13 @@ describe("SelectBuilder", () => {
 
       const tableContext = CreateTableBuilder.create(clientWithEvents)
         .keyspace("analytics")
-        .table("user_events")
+        .table("userEvents")
         .schema({
           userId: cql.scalar.uuid,
           eventType: cql.scalar.text,
           timestamp: cql.scalar.timestamp,
         })
-        .primaryKey("user_id", "timestamp")
+        .primaryKey("userId", "timestamp")
         .build();
 
       const context = SelectBuilder.from(clientWithEvents, tableContext)
@@ -821,38 +802,37 @@ describe("SelectBuilder", () => {
           name: cql.scalar.text,
           price: cql.scalar.decimal,
         })
-        .primaryKey("product_id")
+        .primaryKey("productId")
         .build();
 
-      // Using the select method directly from CreateTableContext
-      const builder = tableContext.select("product_id", "name");
+      const builder = tableContext.select("productId", "name");
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toContain("SELECT product_id, name");
-      expect(cqlString).toContain("FROM products");
+      expect(cqlString).toContain('SELECT "productId", "name"');
+      expect(cqlString).toContain('FROM "products"');
     });
 
     it("should handle SELECT for shopping cart", () => {
       const tableContext = CreateTableBuilder.create(mockClient)
         .keyspace("ecommerce")
-        .table("shopping_carts")
+        .table("shoppingCarts")
         .schema({
           userId: cql.scalar.uuid,
           itemId: cql.scalar.uuid,
           quantity: cql.scalar.int,
           addedAt: cql.scalar.timestamp,
         })
-        .primaryKey("user_id", "item_id")
+        .primaryKey("userId", "itemId")
         .build();
 
       const builder = SelectBuilder.from(mockClient, tableContext).select(
-        "item_id",
+        "itemId",
         "quantity",
-        "added_at",
+        "addedAt",
       );
 
       expect(builder.toCQL()).toContain(
-        "SELECT item_id, quantity, added_at FROM shopping_carts",
+        'SELECT "itemId", "quantity", "addedAt" FROM "ecommerce"."shoppingCarts"',
       );
     });
   });
@@ -871,7 +851,9 @@ describe("SelectBuilder", () => {
       const selectBuilder = tableContext.select("id", "name");
 
       expect(selectBuilder).toBeInstanceOf(SelectBuilder);
-      expect(selectBuilder.toCQL()).toContain("SELECT id, name FROM users");
+      expect(selectBuilder.toCQL()).toContain(
+        'SELECT "id", "name" FROM "users"',
+      );
     });
 
     it("should chain from table creation to selection", () => {
@@ -882,19 +864,19 @@ describe("SelectBuilder", () => {
           content: cql.scalar.text,
           sentAt: cql.scalar.timestamp,
         })
-        .primaryKey("message_id")
+        .primaryKey("messageId")
         .build()
-        .select("message_id", "content", "sent_at");
+        .select("messageId", "content", "sentAt");
 
       expect(query.toCQL()).toContain(
-        "SELECT message_id, content, sent_at FROM messages",
+        'SELECT "messageId", "content", "sentAt" FROM "messages"',
       );
     });
 
     it("should work with complex table definitions", async () => {
       const tableContext = CreateTableBuilder.create(mockClient)
         .keyspace("social")
-        .table("user_timeline")
+        .table("userTimeline")
         .ifNotExists()
         .schema({
           userId: cql.scalar.uuid,
@@ -902,18 +884,18 @@ describe("SelectBuilder", () => {
           timestamp: cql.scalar.timestamp,
           content: cql.scalar.text,
         })
-        .primaryKey("user_id", "timestamp", "post_id")
+        .primaryKey("userId", "timestamp", "postId")
         .clusteringOrderBy({ timestamp: "desc" })
         .build();
 
       const selectContext = tableContext
-        .select("post_id", "content", "timestamp")
+        .select("postId", "content", "timestamp")
         .build();
 
       await selectContext.execute();
 
       expect(mockClient.execute).toHaveBeenCalledWith(
-        expect.stringContaining("SELECT post_id, content, timestamp"),
+        expect.stringContaining('"postId", "content", "timestamp"'),
       );
     });
   });

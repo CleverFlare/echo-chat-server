@@ -20,50 +20,31 @@ describe("CreateTableBuilder", () => {
   describe("keyspace()", () => {
     it("should set the keyspace name", () => {
       const builder = CreateTableBuilder.create(mockClient)
-        .keyspace("MyKeyspace")
+        .keyspace("myKeyspace")
         .table("myTable")
         .schema({ column: cql.scalar.int })
         .primaryKey("column");
 
-      expect(builder.toCQL()).toContain("my_keyspace");
-    });
-
-    it("should convert keyspace name to snake_case", () => {
-      const builder = CreateTableBuilder.create(mockClient)
-        .keyspace("MyTestKeyspace")
-        .table("users")
-        .schema({ id: cql.scalar.uuid })
-        .primaryKey("id");
-
-      expect(builder.toCQL()).toContain("my_test_keyspace.users");
+      expect(builder.toCQL()).toContain("myKeyspace");
     });
   });
 
   describe("table()", () => {
     it("should set the table name", () => {
       const builder = CreateTableBuilder.create(mockClient)
-        .table("Users")
+        .table("users")
         .schema({ id: cql.scalar.uuid })
         .primaryKey("id");
 
       expect(builder.toCQL()).toContain("users");
-    });
-
-    it("should convert table name to snake_case", () => {
-      const builder = CreateTableBuilder.create(mockClient)
-        .table("UserProfiles")
-        .schema({ id: cql.scalar.uuid })
-        .primaryKey("id");
-
-      expect(builder.toCQL()).toContain("user_profiles");
     });
   });
 
   describe("ifNotExists()", () => {
     it("should add IF NOT EXISTS clause when true", () => {
       const builder = CreateTableBuilder.create(mockClient)
-        .keyspace("my_keyspace")
-        .table("my_table")
+        .keyspace("myKeyspace")
+        .table("myTable")
         .ifNotExists(true)
         .schema({ column: cql.scalar.int })
         .primaryKey("column");
@@ -73,8 +54,8 @@ describe("CreateTableBuilder", () => {
 
     it("should add IF NOT EXISTS clause when called without arguments", () => {
       const builder = CreateTableBuilder.create(mockClient)
-        .keyspace("my_keyspace")
-        .table("my_table")
+        .keyspace("myKeyspace")
+        .table("myTable")
         .ifNotExists()
         .schema({ column: cql.scalar.int })
         .primaryKey("column");
@@ -84,8 +65,8 @@ describe("CreateTableBuilder", () => {
 
     it("should not add IF NOT EXISTS clause when false", () => {
       const builder = CreateTableBuilder.create(mockClient)
-        .keyspace("my_keyspace")
-        .table("my_table")
+        .keyspace("myKeyspace")
+        .table("myTable")
         .ifNotExists(false)
         .schema({ column: cql.scalar.int })
         .primaryKey("column");
@@ -106,25 +87,9 @@ describe("CreateTableBuilder", () => {
         .primaryKey("id");
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toContain("id");
-      expect(cqlString).toContain("name");
-      expect(cqlString).toContain("age");
-    });
-
-    it("should convert column names to snake_case", () => {
-      const builder = CreateTableBuilder.create(mockClient)
-        .table("users")
-        .schema({
-          userId: cql.scalar.uuid,
-          firstName: cql.scalar.text,
-          lastName: cql.scalar.text,
-        })
-        .primaryKey("user_id");
-
-      const cqlString = builder.toCQL();
-      expect(cqlString).toContain("user_id");
-      expect(cqlString).toContain("first_name");
-      expect(cqlString).toContain("last_name");
+      expect(cqlString).toContain('"id"');
+      expect(cqlString).toContain('"name"');
+      expect(cqlString).toContain('"age"');
     });
 
     it("should handle multiple column types", () => {
@@ -154,7 +119,7 @@ describe("CreateTableBuilder", () => {
 
       const cqlString = builder.toCQL();
       expect(cqlString).toContain("PRIMARY KEY");
-      expect(cqlString).toMatch(/PRIMARY KEY\s*\(\s*id\s*\)/);
+      expect(cqlString).toMatch(/PRIMARY KEY\s*\(\s*"id"\s*\)/);
     });
 
     it("should create a primary key with single partition key and clustering keys", () => {
@@ -165,13 +130,13 @@ describe("CreateTableBuilder", () => {
           timestamp: cql.scalar.timestamp,
           eventType: cql.scalar.text,
         })
-        .primaryKey("user_id", "timestamp", "event_type");
+        .primaryKey("userId", "timestamp", "eventType");
 
       const cqlString = builder.toCQL();
       expect(cqlString).toContain("PRIMARY KEY");
-      expect(cqlString).toContain("user_id");
-      expect(cqlString).toContain("timestamp");
-      expect(cqlString).toContain("event_type");
+      expect(cqlString).toContain('"userId"');
+      expect(cqlString).toContain('"timestamp"');
+      expect(cqlString).toContain('"eventType"');
     });
 
     it("should create a composite partition key", () => {
@@ -187,26 +152,28 @@ describe("CreateTableBuilder", () => {
 
       const cqlString = builder.toCQL();
       expect(cqlString).toContain("PRIMARY KEY");
-      expect(cqlString).toMatch(/PRIMARY KEY\s*\(\s*\(\s*year,\s*month\s*\)/);
+      expect(cqlString).toMatch(
+        /PRIMARY KEY\s*\(\s*\(\s*"year",\s*"month"\s*\)/,
+      );
     });
 
     it("should handle composite partition key with multiple clustering keys", () => {
       const builder = CreateTableBuilder.create(mockClient)
-        .table("sensor_data")
+        .table("sensorData")
         .schema({
           sensorId: cql.scalar.uuid,
           locationId: cql.scalar.uuid,
           timestamp: cql.scalar.timestamp,
           reading: cql.scalar.double,
         })
-        .primaryKey(["sensor_id", "location_id"], "timestamp", "reading");
+        .primaryKey(["sensorId", "locationId"], "timestamp", "reading");
 
       const cqlString = builder.toCQL();
       expect(cqlString).toContain("PRIMARY KEY");
-      expect(cqlString).toContain("sensor_id");
-      expect(cqlString).toContain("location_id");
-      expect(cqlString).toContain("timestamp");
-      expect(cqlString).toContain("reading");
+      expect(cqlString).toContain('"sensorId"');
+      expect(cqlString).toContain('"locationId"');
+      expect(cqlString).toContain('"timestamp"');
+      expect(cqlString).toContain('"reading"');
     });
   });
 
@@ -218,12 +185,12 @@ describe("CreateTableBuilder", () => {
           userId: cql.scalar.uuid,
           timestamp: cql.scalar.timestamp,
         })
-        .primaryKey("user_id", "timestamp")
+        .primaryKey("userId", "timestamp")
         .clusteringOrderBy({ timestamp: "asc" });
 
       const cqlString = builder.toCQL();
       expect(cqlString).toContain("CLUSTERING ORDER BY");
-      expect(cqlString).toContain("timestamp asc");
+      expect(cqlString).toContain('"timestamp" asc');
     });
 
     it("should add clustering order with single key descending", () => {
@@ -233,12 +200,12 @@ describe("CreateTableBuilder", () => {
           userId: cql.scalar.uuid,
           timestamp: cql.scalar.timestamp,
         })
-        .primaryKey("user_id", "timestamp")
+        .primaryKey("userId", "timestamp")
         .clusteringOrderBy({ timestamp: "desc" });
 
       const cqlString = builder.toCQL();
       expect(cqlString).toContain("CLUSTERING ORDER BY");
-      expect(cqlString).toContain("timestamp desc");
+      expect(cqlString).toContain('"timestamp" desc');
     });
 
     it("should add clustering order with multiple keys", () => {
@@ -249,13 +216,13 @@ describe("CreateTableBuilder", () => {
           timestamp: cql.scalar.timestamp,
           eventType: cql.scalar.text,
         })
-        .primaryKey("user_id", "timestamp", "event_type")
-        .clusteringOrderBy({ timestamp: "desc", event_type: "asc" });
+        .primaryKey("userId", "timestamp", "eventType")
+        .clusteringOrderBy({ timestamp: "desc", eventType: "asc" });
 
       const cqlString = builder.toCQL();
       expect(cqlString).toContain("CLUSTERING ORDER BY");
-      expect(cqlString).toContain("timestamp desc");
-      expect(cqlString).toContain("event_type asc");
+      expect(cqlString).toContain('"timestamp" desc');
+      expect(cqlString).toContain('"eventType" asc');
     });
 
     it("should handle partial clustering order specification", () => {
@@ -266,11 +233,11 @@ describe("CreateTableBuilder", () => {
           timestamp: cql.scalar.timestamp,
           eventType: cql.scalar.text,
         })
-        .primaryKey("user_id", "timestamp", "event_type")
+        .primaryKey("userId", "timestamp", "eventType")
         .clusteringOrderBy({ timestamp: "desc" });
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toContain("timestamp desc");
+      expect(cqlString).toContain('"timestamp" desc');
     });
   });
 
@@ -328,13 +295,13 @@ describe("CreateTableBuilder", () => {
           userId: cql.scalar.uuid,
           timestamp: cql.scalar.timestamp,
         })
-        .primaryKey("user_id", "timestamp")
+        .primaryKey("userId", "timestamp")
         .clusteringOrderBy({ timestamp: "desc" })
         .with(withOptions.id("some-id"));
 
       const cqlString = builder.toCQL();
       expect(cqlString).toContain("CLUSTERING ORDER BY");
-      expect(cqlString).toContain("timestamp desc");
+      expect(cqlString).toContain('"timestamp" desc');
       expect(cqlString).toContain("AND");
       expect(cqlString).toContain("ID = 'some-id'");
     });
@@ -357,24 +324,13 @@ describe("CreateTableBuilder", () => {
 
   it("should generate CREATE TABLE with keyspace", () => {
     const builder = CreateTableBuilder.create(mockClient)
-      .keyspace("test_keyspace")
+      .keyspace("testKeyspace")
       .table("users")
       .schema({ id: cql.scalar.uuid })
       .primaryKey("id");
 
     const cqlString = builder.toCQL();
-    expect(cqlString).toContain("test_keyspace.users");
-  });
-
-  it("should generate CREATE TABLE IF NOT EXISTS", () => {
-    const builder = CreateTableBuilder.create(mockClient)
-      .table("users")
-      .ifNotExists()
-      .schema({ id: cql.scalar.uuid })
-      .primaryKey("id");
-
-    const cqlString = builder.toCQL();
-    expect(cqlString).toMatch(/CREATE TABLE .* IF NOT EXISTS/);
+    expect(cqlString).toContain('"testKeyspace"."users"');
   });
 
   it("should generate CREATE TABLE IF NOT EXISTS", () => {
@@ -390,7 +346,7 @@ describe("CreateTableBuilder", () => {
 
   it("should generate complete CQL with all features", () => {
     const builder = CreateTableBuilder.create(mockClient)
-      .keyspace("my_keyspace")
+      .keyspace("myKeyspace")
       .table("events")
       .ifNotExists()
       .schema({
@@ -399,18 +355,18 @@ describe("CreateTableBuilder", () => {
         eventType: cql.scalar.text,
         data: cql.scalar.text,
       })
-      .primaryKey("user_id", "timestamp", "event_type")
-      .clusteringOrderBy({ timestamp: "desc", event_type: "asc" })
+      .primaryKey("userId", "timestamp", "eventType")
+      .clusteringOrderBy({ timestamp: "desc", eventType: "asc" })
       .with(withOptions.id("some-id"));
 
     const cqlString = builder.toCQL();
     expect(cqlString).toContain("CREATE TABLE");
-    expect(cqlString).toContain("my_keyspace.events");
+    expect(cqlString).toContain('"myKeyspace"."events"');
     expect(cqlString).toContain("IF NOT EXISTS");
-    expect(cqlString).toContain("user_id");
-    expect(cqlString).toContain("timestamp");
-    expect(cqlString).toContain("event_type");
-    expect(cqlString).toContain("data");
+    expect(cqlString).toContain('"userId"');
+    expect(cqlString).toContain('"timestamp"');
+    expect(cqlString).toContain('"eventType"');
+    expect(cqlString).toContain('"data"');
     expect(cqlString).toContain("PRIMARY KEY");
     expect(cqlString).toContain("CLUSTERING ORDER BY");
     expect(cqlString).toContain("WITH");
@@ -424,7 +380,7 @@ describe("CreateTableBuilder", () => {
       .primaryKey("id");
 
     const cqlString = builder.toCQL();
-    expect(cqlString).toMatch(/^CREATE TABLE simple/);
+    expect(cqlString).toMatch(/^CREATE TABLE "simple"/);
     expect(cqlString).not.toContain(".");
   });
 
@@ -441,7 +397,7 @@ describe("CreateTableBuilder", () => {
 
     it("should preserve the context information", () => {
       const builder = CreateTableBuilder.create(mockClient)
-        .keyspace("test_keyspace")
+        .keyspace("testKeyspace")
         .table("users")
         .schema({
           id: cql.scalar.uuid,
@@ -451,7 +407,7 @@ describe("CreateTableBuilder", () => {
 
       const context = builder.build().context;
       expect(context).toBeDefined();
-      expect(context.keyspace).toBe("test_keyspace");
+      expect(context.keyspace).toBe("testKeyspace");
       expect(context.table).toBe("users");
       expect(context.columns).toEqual({
         id: cql.scalar.uuid,
@@ -497,7 +453,7 @@ describe("CreateTableBuilder", () => {
       await context.execute();
 
       expect(mockClient.execute).toHaveBeenLastCalledWith(
-        expect.stringContaining("CREATE TABLE users"),
+        expect.stringContaining('CREATE TABLE "users"'),
       );
     });
 
@@ -512,7 +468,7 @@ describe("CreateTableBuilder", () => {
           userId: cql.scalar.uuid,
           timestamp: cql.scalar.timestamp,
         })
-        .primaryKey("user_id", "timestamp")
+        .primaryKey("userId", "timestamp")
         .clusteringOrderBy({ timestamp: "desc" })
         .with(option);
 
@@ -520,7 +476,7 @@ describe("CreateTableBuilder", () => {
       await context.execute();
 
       expect(mockClient.execute).toHaveBeenLastCalledWith(
-        expect.stringMatching(/CREATE TABLE test\.events IF NOT EXISTS .*/),
+        expect.stringMatching(/CREATE TABLE "test"\."events" IF NOT EXISTS .*/),
       );
     });
   });
@@ -551,10 +507,8 @@ describe("CreateTableBuilder", () => {
 
       const withKeyspace = base.keyspace("test");
 
-      // Base should not have keyspace in its CQL
-      expect(base.toCQL()).not.toContain("test.");
-      // New instance should have keyspace
-      expect(withKeyspace.toCQL()).toContain("test.");
+      expect(base.toCQL()).not.toContain('"test".');
+      expect(withKeyspace.toCQL()).toContain('"test".');
     });
   });
 
@@ -566,7 +520,7 @@ describe("CreateTableBuilder", () => {
         .primaryKey("key");
 
       expect(builder.toCQL()).toMatch(
-        /CREATE TABLE minimal \([\s\S]*key[\s\S]*PRIMARY KEY[\s\S]*\);/,
+        /CREATE TABLE "minimal" \([\s\S]*"key"[\s\S]*PRIMARY KEY[\s\S]*\);/,
       );
     });
 
@@ -586,8 +540,8 @@ describe("CreateTableBuilder", () => {
         .primaryKey("id");
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toContain("col1");
-      expect(cqlString).toContain("col7");
+      expect(cqlString).toContain('"col1"');
+      expect(cqlString).toContain('"col7"');
     });
 
     it("should handle complex composite keys", () => {
@@ -604,11 +558,11 @@ describe("CreateTableBuilder", () => {
         .primaryKey(["part1", "part2", "part3"], "cluster1", "cluster2");
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toContain("part1");
-      expect(cqlString).toContain("part2");
-      expect(cqlString).toContain("part3");
-      expect(cqlString).toContain("cluster1");
-      expect(cqlString).toContain("cluster2");
+      expect(cqlString).toContain('"part1"');
+      expect(cqlString).toContain('"part2"');
+      expect(cqlString).toContain('"part3"');
+      expect(cqlString).toContain('"cluster1"');
+      expect(cqlString).toContain('"cluster2"');
       expect(cqlString).toMatch(/PRIMARY KEY\s*\(\s*\(/);
     });
   });

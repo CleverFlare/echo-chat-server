@@ -69,7 +69,7 @@ describe("UpdateBuilder", () => {
         .set("email", "new@example.com")
         .where("id", "=", "123e4567-e89b-12d3-a456-426614174000");
 
-      expect(builder.toCQL()).toContain("SET email = ?");
+      expect(builder.toCQL()).toContain('"email" = ?');
     });
 
     it("should allow chaining multiple set() calls", () => {
@@ -79,8 +79,8 @@ describe("UpdateBuilder", () => {
         .where("id", "=", "123e4567-e89b-12d3-a456-426614174000")
         .toCQL();
 
-      expect(cqlString).toContain("email = ?");
-      expect(cqlString).toContain("age = ?");
+      expect(cqlString).toContain('"email" = ?');
+      expect(cqlString).toContain('"age" = ?');
     });
 
     it("should produce comma-separated assignments for multiple set() calls", () => {
@@ -90,7 +90,7 @@ describe("UpdateBuilder", () => {
         .where("id", "=", "123e4567-e89b-12d3-a456-426614174000")
         .toCQL();
 
-      expect(cqlString).toMatch(/name = \?.*,.*email = \?/);
+      expect(cqlString).toMatch(/"name" = \?.*,.*"email" = \?/);
     });
   });
 
@@ -120,7 +120,7 @@ describe("UpdateBuilder", () => {
         .where("id", "=", "123e4567-e89b-12d3-a456-426614174000")
         .toCQL();
 
-      expect(cqlString).toContain("tags = tags + ?");
+      expect(cqlString).toContain('"tags" = "tags" + ?');
     });
 
     it("should produce a column = column + ? pattern for sets", () => {
@@ -129,7 +129,7 @@ describe("UpdateBuilder", () => {
         .where("id", "=", "123e4567-e89b-12d3-a456-426614174000")
         .toCQL();
 
-      expect(cqlString).toContain("scores = scores + ?");
+      expect(cqlString).toContain('"scores" = "scores" + ?');
     });
 
     it("should produce a column = column + ? pattern for maps", () => {
@@ -138,7 +138,7 @@ describe("UpdateBuilder", () => {
         .where("id", "=", "123e4567-e89b-12d3-a456-426614174000")
         .toCQL();
 
-      expect(cqlString).toContain("meta = meta + ?");
+      expect(cqlString).toContain('"meta" = "meta" + ?');
     });
   });
 
@@ -166,7 +166,7 @@ describe("UpdateBuilder", () => {
         .where("id", "=", "123e4567-e89b-12d3-a456-426614174000")
         .toCQL();
 
-      expect(cqlString).toContain("tags = ? + tags");
+      expect(cqlString).toContain('"tags" = ? + "tags"');
     });
   });
 
@@ -196,7 +196,7 @@ describe("UpdateBuilder", () => {
         .where("id", "=", "123e4567-e89b-12d3-a456-426614174000")
         .toCQL();
 
-      expect(cqlString).toContain("tags = tags - ?");
+      expect(cqlString).toContain('"tags" = "tags" - ?');
     });
 
     it("should produce a column = column - ? pattern for sets", () => {
@@ -205,7 +205,7 @@ describe("UpdateBuilder", () => {
         .where("id", "=", "123e4567-e89b-12d3-a456-426614174000")
         .toCQL();
 
-      expect(cqlString).toContain("scores = scores - ?");
+      expect(cqlString).toContain('"scores" = "scores" - ?');
     });
 
     it("should produce a column = column - ? pattern for maps", () => {
@@ -214,7 +214,7 @@ describe("UpdateBuilder", () => {
         .where("id", "=", "123e4567-e89b-12d3-a456-426614174000")
         .toCQL();
 
-      expect(cqlString).toContain("meta = meta - ?");
+      expect(cqlString).toContain('"meta" = "meta" - ?');
     });
   });
 
@@ -242,49 +242,49 @@ describe("UpdateBuilder", () => {
         .where("id", "=", "123e4567-e89b-12d3-a456-426614174000")
         .toCQL();
 
-      expect(cqlString).toContain("WHERE id = ?");
+      expect(cqlString).toContain('WHERE "id" = ?');
     });
 
     it("should support chaining multiple where() conditions", () => {
       const table = CreateTableBuilder.create(mockClient)
         .table("events")
         .schema({
-          tenant_id: cql.scalar.text,
-          event_id: cql.scalar.uuid,
+          tenantId: cql.scalar.text,
+          eventId: cql.scalar.uuid,
           data: cql.scalar.text,
         })
-        .primaryKey("tenant_id", "event_id")
+        .primaryKey("tenantId", "eventId")
         .build();
 
       const cqlString = UpdateBuilder.from(mockClient, table)
         .set("data", "payload")
-        .where("tenant_id", "=", "acme")
-        .where("event_id", "=", "123e4567-e89b-12d3-a456-426614174000")
+        .where("tenantId", "=", "acme")
+        .where("eventId", "=", "123e4567-e89b-12d3-a456-426614174000")
         .toCQL();
 
-      expect(cqlString).toContain("WHERE tenant_id = ? AND event_id = ?");
+      expect(cqlString).toContain('WHERE "tenantId" = ? AND "eventId" = ?');
     });
 
     it("should preserve condition order", () => {
       const table = CreateTableBuilder.create(mockClient)
         .table("events")
         .schema({
-          tenant_id: cql.scalar.text,
-          event_id: cql.scalar.uuid,
+          tenantId: cql.scalar.text,
+          eventId: cql.scalar.uuid,
           data: cql.scalar.text,
         })
-        .primaryKey("tenant_id", "event_id")
+        .primaryKey("tenantId", "eventId")
         .build();
 
       const cqlString = UpdateBuilder.from(mockClient, table)
         .set("data", "x")
-        .where("tenant_id", "=", "t1")
-        .where("event_id", "=", "123e4567-e89b-12d3-a456-426614174000")
+        .where("tenantId", "=", "t1")
+        .where("eventId", "=", "123e4567-e89b-12d3-a456-426614174000")
         .toCQL();
 
       const whereIdx = cqlString.indexOf("WHERE");
-      const tenantIdx = cqlString.indexOf("tenant_id", whereIdx);
-      const eventIdx = cqlString.indexOf("event_id", whereIdx);
+      const tenantIdx = cqlString.indexOf('"tenantId"', whereIdx);
+      const eventIdx = cqlString.indexOf('"eventId"', whereIdx);
       expect(tenantIdx).toBeLessThan(eventIdx);
     });
   });
@@ -361,7 +361,7 @@ describe("UpdateBuilder", () => {
         .if("email", "=", "old@example.com")
         .toCQL();
 
-      expect(cqlString).toContain("IF email = ?");
+      expect(cqlString).toContain('IF "email" = ?');
     });
 
     it("should not include IF EXISTS when an IF condition is set", () => {
@@ -417,7 +417,7 @@ describe("UpdateBuilder", () => {
       const cqlString = UpdateBuilder.from(mockClient, usersTable)
         .set("token", "abc123")
         .where("id", "=", "123e4567-e89b-12d3-a456-426614174000")
-        .ttl(86400 * 365) // 1 year in seconds
+        .ttl(86400 * 365)
         .toCQL();
 
       expect(cqlString).toContain(`USING TTL ${86400 * 365}`);
@@ -443,7 +443,7 @@ describe("UpdateBuilder", () => {
     });
 
     it("should add TIMESTAMP option", () => {
-      const timestamp = Date.now() * 1000; // Convert to microseconds
+      const timestamp = Date.now() * 1000;
       const cqlString = UpdateBuilder.from(mockClient, usersTable)
         .set("data", "test")
         .where("id", "=", "123e4567-e89b-12d3-a456-426614174000")
@@ -454,7 +454,7 @@ describe("UpdateBuilder", () => {
     });
 
     it("should handle specific timestamp values", () => {
-      const specificTime = 1234567890123456; // Microseconds
+      const specificTime = 1234567890123456;
       const cqlString = UpdateBuilder.from(mockClient, usersTable)
         .set("data", "historical")
         .where("id", "=", "123e4567-e89b-12d3-a456-426614174000")
@@ -548,7 +548,7 @@ describe("UpdateBuilder", () => {
         .toCQL();
 
       expect(cqlString).toMatch(/^UPDATE/);
-      expect(cqlString).toContain("users");
+      expect(cqlString).toContain('"users"');
       expect(cqlString).toContain("SET");
       expect(cqlString).toContain("WHERE");
       expect(cqlString).toMatch(/;$/);
@@ -570,7 +570,7 @@ describe("UpdateBuilder", () => {
         .where("id", "=", "123e4567-e89b-12d3-a456-426614174000")
         .toCQL();
 
-      expect(cqlString).toContain("UPDATE app.users");
+      expect(cqlString).toContain('UPDATE "app"."users"');
     });
 
     it("should put SET before WHERE", () => {
@@ -589,8 +589,8 @@ describe("UpdateBuilder", () => {
         .where("id", "=", "123e4567-e89b-12d3-a456-426614174000")
         .toCQL();
 
-      expect(cqlString).toContain("name = ?");
-      expect(cqlString).toContain("email = ?");
+      expect(cqlString).toContain('"name" = ?');
+      expect(cqlString).toContain('"email" = ?');
     });
   });
 
@@ -648,7 +648,7 @@ describe("UpdateBuilder", () => {
         await context.execute();
 
         expect(mockClient.execute).toHaveBeenCalledWith(
-          expect.stringContaining("UPDATE users"),
+          expect.stringContaining('UPDATE "users"'),
           expect.any(Array),
           { prepare: true },
         );
@@ -717,7 +717,7 @@ describe("UpdateBuilder", () => {
           .build();
 
         expect(context.toCQL()).toContain("UPDATE");
-        expect(context.toCQL()).toContain("users");
+        expect(context.toCQL()).toContain('"users"');
       });
     });
   });
@@ -782,7 +782,7 @@ describe("UpdateBuilder", () => {
       await context.execute();
 
       expect(mockClient.execute).toHaveBeenCalledWith(
-        expect.stringContaining("UPDATE app.users"),
+        expect.stringContaining('UPDATE "app"."users"'),
         expect.any(Array),
         { prepare: true },
       );
@@ -792,15 +792,15 @@ describe("UpdateBuilder", () => {
       const table = CreateTableBuilder.create(mockClient)
         .table("sessions")
         .schema({
-          session_id: cql.scalar.uuid,
+          sessionId: cql.scalar.uuid,
           token: cql.scalar.text,
         })
-        .primaryKey("session_id")
+        .primaryKey("sessionId")
         .build();
 
       const context = UpdateBuilder.from(mockClient, table)
         .set("token", "new-token-xyz")
-        .where("session_id", "=", "123e4567-e89b-12d3-a456-426614174000")
+        .where("sessionId", "=", "123e4567-e89b-12d3-a456-426614174000")
         .ttl(3600)
         .build();
 
@@ -811,16 +811,16 @@ describe("UpdateBuilder", () => {
       const table = CreateTableBuilder.create(mockClient)
         .table("events")
         .schema({
-          event_id: cql.scalar.uuid,
+          eventId: cql.scalar.uuid,
           data: cql.scalar.text,
         })
-        .primaryKey("event_id")
+        .primaryKey("eventId")
         .build();
 
       const customTimestamp = 1234567890000000;
       const context = UpdateBuilder.from(mockClient, table)
         .set("data", '{"status": "processed"}')
-        .where("event_id", "=", "123e4567-e89b-12d3-a456-426614174000")
+        .where("eventId", "=", "123e4567-e89b-12d3-a456-426614174000")
         .timestamp(customTimestamp)
         .build();
 
@@ -861,7 +861,7 @@ describe("UpdateBuilder", () => {
         .where("id", "=", "123e4567-e89b-12d3-a456-426614174000")
         .build();
 
-      expect(context.toCQL()).toContain("tags = tags + ?");
+      expect(context.toCQL()).toContain('"tags" = "tags" + ?');
     });
   });
 });

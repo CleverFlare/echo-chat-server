@@ -45,8 +45,8 @@ export class DropTypeBuilder<TState extends Partial<DropTypeBuilderInput>> {
     if (!this.#actual.type) throw new Error("Type name is required");
 
     if (this.#actual.keyspace)
-      parts.push(`${this.#actual.keyspace}.${this.#actual.type}`);
-    else parts.push(this.#actual.type);
+      parts.push(`"${this.#actual.keyspace}"."${this.#actual.type}"`);
+    else parts.push(`"${this.#actual.type}"`);
 
     return parts.join(" ") + ";";
   }

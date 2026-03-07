@@ -98,7 +98,7 @@ export class SelectBuilder<
       return "*";
     }
 
-    return this.#actual.columns.join(", ");
+    return this.#actual.columns.map((column) => `"${column}"`).join(", ");
   }
 
   private buildCQL(
@@ -110,7 +110,11 @@ export class SelectBuilder<
 
     parts.push("FROM");
 
-    parts.push(this.#context.table);
+    const table = this.#context.keyspace
+      ? `"${this.#context.keyspace}"."${this.#context.table}"`
+      : `"${this.#context.table}"`;
+
+    parts.push(table);
 
     return parts.join(" ") + ";";
   }

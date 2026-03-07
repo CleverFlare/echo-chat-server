@@ -4,7 +4,6 @@ import { SnakeCase, SnakeCasedProperties } from "type-fest";
 import { CreateTypeBuilderInput } from "./types";
 import { CreateTypeContext } from "./context";
 import { Schema } from "@/cql/types";
-import { CreateTableContext } from "../create-table/context";
 
 export class CreateTypeBuilder<
   const TState extends Partial<CreateTypeBuilderInput>,
@@ -31,20 +30,20 @@ export class CreateTypeBuilder<
   keyspace<const Keyspace extends string>(
     this: CreateTypeBuilder<TState & { keyspace?: never }>,
     name: Keyspace,
-  ): CreateTypeBuilder<TState & { keyspace: SnakeCase<Keyspace> }> {
+  ): CreateTypeBuilder<TState & { keyspace: Keyspace }> {
     return this.clone({
       ...this.#actual,
-      keyspace: snakeCase(name) as SnakeCase<Keyspace>,
+      keyspace: name,
     });
   }
 
   type<const Type extends string>(
     this: CreateTypeBuilder<TState & { type?: never }>,
     name: Type,
-  ): CreateTypeBuilder<TState & { type: SnakeCase<Type> }> {
+  ): CreateTypeBuilder<TState & { type: Type }> {
     return this.clone({
       ...this.#actual,
-      type: snakeCase(name) as SnakeCase<Type>,
+      type: name,
     });
   }
 
@@ -73,21 +72,14 @@ export class CreateTypeBuilder<
     this: CreateTypeBuilder<TState & { schema?: never }>,
     schema: T,
   ) {
-    type SnakeCasedSchema = SnakeCasedProperties<T>;
-
-    const snakeCasedSchema = Object.entries(schema).reduce(
-      (prev, [key, value]) => ({ ...prev, [snakeCase(key)]: value }),
-      {},
-    ) as SnakeCasedSchema;
-
-    return this.clone({ ...this.#actual, schema: snakeCasedSchema });
+    return this.clone({ ...this.#actual, schema });
   }
 
   private assembleSchema(
     this: CreateTypeBuilder<TState & CreateTypeBuilderInput>,
   ) {
     const columns = Object.entries(this.#actual.schema).map(
-      ([key, value]) => `${key} ${value.cql}`,
+      ([key, value]) => `"${key}" ${value.cql}`,
     );
 
     return `(\n${columns.join(",\n")})`;
@@ -99,8 +91,8 @@ export class CreateTypeBuilder<
     if (!this.#actual.type) throw new Error("Type name is required");
 
     if (this.#actual.keyspace)
-      parts.push(`${this.#actual.keyspace}.${this.#actual.type}`);
-    else parts.push(this.#actual.type);
+      parts.push(`"${this.#actual.keyspace}"."${this.#actual.type}"`);
+    else parts.push(`"${this.#actual.type}"`);
 
     if (this.#actual.ifNotExists) parts.push("IF NOT EXISTS");
 

@@ -76,7 +76,6 @@ describe("DeleteBuilder", () => {
         .where("id", "=", "123e4567-e89b-12d3-a456-426614174000")
         .toCQL();
 
-      // Everything between DELETE and FROM must be absent (no column names)
       expect(cqlString).not.toMatch(/DELETE \w+ FROM/);
     });
   });
@@ -107,7 +106,7 @@ describe("DeleteBuilder", () => {
         .where("id", "=", "123e4567-e89b-12d3-a456-426614174000")
         .toCQL();
 
-      expect(cqlString).toContain("DELETE email FROM");
+      expect(cqlString).toContain('DELETE "email" FROM');
     });
 
     it("should support deleting multiple columns", () => {
@@ -117,8 +116,8 @@ describe("DeleteBuilder", () => {
         .where("id", "=", "123e4567-e89b-12d3-a456-426614174000")
         .toCQL();
 
-      expect(cqlString).toContain("email");
-      expect(cqlString).toContain("age");
+      expect(cqlString).toContain('"email"');
+      expect(cqlString).toContain('"age"');
       expect(cqlString.indexOf("DELETE")).toBeLessThan(
         cqlString.indexOf("FROM"),
       );
@@ -131,7 +130,7 @@ describe("DeleteBuilder", () => {
         .where("id", "=", "123e4567-e89b-12d3-a456-426614174000")
         .toCQL();
 
-      expect(cqlString).toMatch(/DELETE name, email FROM/);
+      expect(cqlString).toMatch(/DELETE "name", "email" FROM/);
     });
   });
 
@@ -143,10 +142,7 @@ describe("DeleteBuilder", () => {
     >;
 
     beforeEach(() => {
-      const address = cql.frozen(
-        // Represent UDT as a frozen map for test purposes
-        cql.map(cql.scalar.text, cql.scalar.text),
-      );
+      const address = cql.frozen(cql.map(cql.scalar.text, cql.scalar.text));
 
       eventsTable = CreateTableBuilder.create(mockClient)
         .table("events")
@@ -164,7 +160,7 @@ describe("DeleteBuilder", () => {
         .where("id", "=", "123e4567-e89b-12d3-a456-426614174000")
         .toCQL();
 
-      expect(cqlString).toContain("address.street");
+      expect(cqlString).toContain('"address"."street"');
     });
   });
 
@@ -186,7 +182,7 @@ describe("DeleteBuilder", () => {
         .where("id", "=", "123e4567-e89b-12d3-a456-426614174000")
         .toCQL();
 
-      expect(cqlString).toContain("meta[?]");
+      expect(cqlString).toContain('"meta"[?]');
     });
 
     it("should place the map key value before the WHERE values in params", async () => {
@@ -228,47 +224,47 @@ describe("DeleteBuilder", () => {
         .where("id", "=", "123e4567-e89b-12d3-a456-426614174000")
         .toCQL();
 
-      expect(cqlString).toContain("WHERE id = ?");
+      expect(cqlString).toContain('WHERE "id" = ?');
     });
 
     it("should support chaining multiple where() conditions", () => {
       const table = CreateTableBuilder.create(mockClient)
         .table("events")
         .schema({
-          tenant_id: cql.scalar.text,
-          event_id: cql.scalar.uuid,
+          tenantId: cql.scalar.text,
+          eventId: cql.scalar.uuid,
           data: cql.scalar.text,
         })
-        .primaryKey("tenant_id", "event_id")
+        .primaryKey("tenantId", "eventId")
         .build();
 
       const cqlString = DeleteBuilder.from(mockClient, table)
-        .where("tenant_id", "=", "acme")
-        .where("event_id", "=", "123e4567-e89b-12d3-a456-426614174000")
+        .where("tenantId", "=", "acme")
+        .where("eventId", "=", "123e4567-e89b-12d3-a456-426614174000")
         .toCQL();
 
-      expect(cqlString).toContain("WHERE tenant_id = ? AND event_id = ?");
+      expect(cqlString).toContain('WHERE "tenantId" = ? AND "eventId" = ?');
     });
 
     it("should preserve condition order", () => {
       const table = CreateTableBuilder.create(mockClient)
         .table("events")
         .schema({
-          tenant_id: cql.scalar.text,
-          event_id: cql.scalar.uuid,
+          tenantId: cql.scalar.text,
+          eventId: cql.scalar.uuid,
           data: cql.scalar.text,
         })
-        .primaryKey("tenant_id", "event_id")
+        .primaryKey("tenantId", "eventId")
         .build();
 
       const cqlString = DeleteBuilder.from(mockClient, table)
-        .where("tenant_id", "=", "t1")
-        .where("event_id", "=", "123e4567-e89b-12d3-a456-426614174000")
+        .where("tenantId", "=", "t1")
+        .where("eventId", "=", "123e4567-e89b-12d3-a456-426614174000")
         .toCQL();
 
       const whereIdx = cqlString.indexOf("WHERE");
-      expect(cqlString.indexOf("tenant_id", whereIdx)).toBeLessThan(
-        cqlString.indexOf("event_id", whereIdx),
+      expect(cqlString.indexOf('"tenantId"', whereIdx)).toBeLessThan(
+        cqlString.indexOf('"eventId"', whereIdx),
       );
     });
   });
@@ -341,7 +337,7 @@ describe("DeleteBuilder", () => {
         .if("name", "=", "Alice")
         .toCQL();
 
-      expect(cqlString).toContain("IF name = ?");
+      expect(cqlString).toContain('IF "name" = ?');
     });
 
     it("should not include IF EXISTS when an IF condition is set", () => {
@@ -430,7 +426,7 @@ describe("DeleteBuilder", () => {
 
       expect(cqlString).toMatch(/^DELETE/);
       expect(cqlString).toContain("FROM");
-      expect(cqlString).toContain("users");
+      expect(cqlString).toContain('"users"');
       expect(cqlString).toContain("WHERE");
       expect(cqlString).toMatch(/;$/);
     });
@@ -450,7 +446,7 @@ describe("DeleteBuilder", () => {
         .where("id", "=", "123e4567-e89b-12d3-a456-426614174000")
         .toCQL();
 
-      expect(cqlString).toContain("FROM app.users");
+      expect(cqlString).toContain('FROM "app"."users"');
     });
 
     it("should put FROM before WHERE", () => {
@@ -468,7 +464,7 @@ describe("DeleteBuilder", () => {
         .where("id", "=", "123e4567-e89b-12d3-a456-426614174000")
         .toCQL();
 
-      expect(cqlString).toContain("id = ?");
+      expect(cqlString).toContain('"id" = ?');
     });
   });
 
@@ -586,7 +582,7 @@ describe("DeleteBuilder", () => {
           .build();
 
         expect(context.toCQL()).toContain("DELETE");
-        expect(context.toCQL()).toContain("users");
+        expect(context.toCQL()).toContain('"users"');
       });
     });
   });
@@ -652,7 +648,7 @@ describe("DeleteBuilder", () => {
       await context.execute();
 
       expect(mockClient.execute).toHaveBeenCalledWith(
-        expect.stringContaining("FROM app.users"),
+        expect.stringContaining('FROM "app"."users"'),
         expect.any(Array),
         { prepare: true },
       );
@@ -675,21 +671,21 @@ describe("DeleteBuilder", () => {
         .where("id", "=", "123e4567-e89b-12d3-a456-426614174000")
         .build();
 
-      expect(context.toCQL()).toMatch(/DELETE name, email FROM/);
+      expect(context.toCQL()).toMatch(/DELETE "name", "email" FROM/);
     });
 
     it("should delete a row only if it exists", async () => {
       const table = CreateTableBuilder.create(mockClient)
         .table("sessions")
         .schema({
-          session_id: cql.scalar.uuid,
+          sessionId: cql.scalar.uuid,
           token: cql.scalar.text,
         })
-        .primaryKey("session_id")
+        .primaryKey("sessionId")
         .build();
 
       const context = DeleteBuilder.from(mockClient, table)
-        .where("session_id", "=", "123e4567-e89b-12d3-a456-426614174000")
+        .where("sessionId", "=", "123e4567-e89b-12d3-a456-426614174000")
         .ifExists()
         .build();
 
@@ -711,22 +707,22 @@ describe("DeleteBuilder", () => {
         .where("id", "=", "123e4567-e89b-12d3-a456-426614174000")
         .build();
 
-      expect(context.toCQL()).toContain("meta[?]");
+      expect(context.toCQL()).toContain('"meta"[?]');
     });
 
     it("should delete a row with a custom write timestamp", async () => {
       const table = CreateTableBuilder.create(mockClient)
         .table("events")
         .schema({
-          event_id: cql.scalar.uuid,
+          eventId: cql.scalar.uuid,
           data: cql.scalar.text,
         })
-        .primaryKey("event_id")
+        .primaryKey("eventId")
         .build();
 
       const customTimestamp = 1234567890000000;
       const context = DeleteBuilder.from(mockClient, table)
-        .where("event_id", "=", "123e4567-e89b-12d3-a456-426614174000")
+        .where("eventId", "=", "123e4567-e89b-12d3-a456-426614174000")
         .timestamp(customTimestamp)
         .build();
 
@@ -749,7 +745,7 @@ describe("DeleteBuilder", () => {
         .if("email", "=", "alice@example.com")
         .build();
 
-      expect(context.toCQL()).toContain("IF email = ?");
+      expect(context.toCQL()).toContain('IF "email" = ?');
       expect(context.toCQL()).not.toContain("IF EXISTS");
     });
   });

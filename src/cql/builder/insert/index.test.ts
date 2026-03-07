@@ -80,31 +80,9 @@ describe("InsertBuilder", () => {
       });
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toContain("id, name");
-      expect(cqlString).not.toContain("email");
-      expect(cqlString).not.toContain("age");
-    });
-
-    it("should handle snake_case column names", () => {
-      const table = CreateTableBuilder.create(mockClient)
-        .table("events")
-        .schema({
-          userId: cql.scalar.uuid,
-          eventType: cql.scalar.text,
-          timestamp: cql.scalar.timestamp,
-        })
-        .primaryKey("user_id")
-        .build();
-
-      const builder = InsertBuilder.into(mockClient, table).insert({
-        user_id: "123e4567-e89b-12d3-a456-426614174000",
-        event_type: "login",
-        timestamp: new Date(),
-      });
-
-      const cqlString = builder.toCQL();
-      expect(cqlString).toContain("user_id");
-      expect(cqlString).toContain("event_type");
+      expect(cqlString).toContain('"id", "name"');
+      expect(cqlString).not.toContain('"email"');
+      expect(cqlString).not.toContain('"age"');
     });
 
     it("should generate correct number of parameterized values placeholders", () => {
@@ -115,7 +93,6 @@ describe("InsertBuilder", () => {
       });
 
       const cqlString = builder.toCQL();
-      // Should have 3 question marks for 3 values
       const placeholderCount = (cqlString.match(/:(.*?)/g) || []).length;
       expect(placeholderCount).toBe(3);
     });
@@ -217,7 +194,7 @@ describe("InsertBuilder", () => {
           id: "123e4567-e89b-12d3-a456-426614174000",
           token: "token",
         })
-        .ttl(86400 * 365); // 1 year in seconds
+        .ttl(86400 * 365);
 
       const cqlString = builder.toCQL();
       expect(cqlString).toContain(`USING TTL ${86400 * 365}`);
@@ -241,7 +218,7 @@ describe("InsertBuilder", () => {
     });
 
     it("should add TIMESTAMP option", () => {
-      const timestamp = Date.now() * 1000; // Convert to microseconds
+      const timestamp = Date.now() * 1000;
       const builder = InsertBuilder.into(mockClient, usersTable)
         .insert({
           id: "123e4567-e89b-12d3-a456-426614174000",
@@ -254,7 +231,7 @@ describe("InsertBuilder", () => {
     });
 
     it("should handle specific timestamp values", () => {
-      const specificTime = 1234567890123456; // Microseconds
+      const specificTime = 1234567890123456;
       const builder = InsertBuilder.into(mockClient, usersTable)
         .insert({
           id: "123e4567-e89b-12d3-a456-426614174000",
@@ -354,7 +331,7 @@ describe("InsertBuilder", () => {
 
       const cqlString = builder.toCQL();
       expect(cqlString).toMatch(/^INSERT INTO/);
-      expect(cqlString).toContain("users");
+      expect(cqlString).toContain('"users"');
       expect(cqlString).toContain("VALUES");
       expect(cqlString).toMatch(/;$/);
     });
@@ -376,7 +353,7 @@ describe("InsertBuilder", () => {
       });
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toContain("INSERT INTO app.users");
+      expect(cqlString).toContain('INSERT INTO "app"."users"');
     });
 
     it("should list columns in parentheses", () => {
@@ -386,7 +363,7 @@ describe("InsertBuilder", () => {
       });
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toMatch(/\(id, name\) VALUES \(:(.*?), :(.*?)\)/);
+      expect(cqlString).toMatch(/\("id", "name"\) VALUES \(:(.*?), :(.*?)\)/);
     });
 
     it("should use parameterized placeholders for values", () => {
@@ -470,7 +447,7 @@ describe("InsertBuilder", () => {
         await context.execute();
 
         expect(mockClient.execute).toHaveBeenCalledWith(
-          expect.stringContaining("INSERT INTO users"),
+          expect.stringContaining('INSERT INTO "users"'),
           expect.objectContaining({
             id: "123e4567-e89b-12d3-a456-426614174000",
             name: "Alice",
@@ -528,7 +505,7 @@ describe("InsertBuilder", () => {
         const cqlString = context.toCQL();
 
         expect(cqlString).toContain("INSERT INTO");
-        expect(cqlString).toContain("users");
+        expect(cqlString).toContain('"users"');
       });
     });
   });
@@ -588,7 +565,7 @@ describe("InsertBuilder", () => {
         id: "123e4567-e89b-12d3-a456-426614174000",
       });
 
-      expect(builder.toCQL()).toContain("(id) VALUES (:id)");
+      expect(builder.toCQL()).toContain('("id") VALUES (:id)');
     });
 
     it("should handle many columns", () => {
@@ -637,14 +614,14 @@ describe("InsertBuilder", () => {
           id: userId,
           name: "Alice Johnson",
           email: "alice@example.com",
-          created_at: new Date(),
+          createdAt: new Date(),
         })
         .build();
 
       await context.execute();
 
       expect(mockClient.execute).toHaveBeenCalledWith(
-        expect.stringContaining("INSERT INTO app.users"),
+        expect.stringContaining('"app"."users"'),
         expect.any(Object),
         { prepare: true },
       );
@@ -658,13 +635,13 @@ describe("InsertBuilder", () => {
           userId: cql.scalar.uuid,
           token: cql.scalar.text,
         })
-        .primaryKey("session_id")
+        .primaryKey("sessionId")
         .build();
 
       const context = InsertBuilder.into(mockClient, table)
         .insert({
-          session_id: "123e4567-e89b-12d3-a456-426614174000",
-          user_id: "223e4567-e89b-12d3-a456-426614174000",
+          sessionId: "123e4567-e89b-12d3-a456-426614174000",
+          userId: "223e4567-e89b-12d3-a456-426614174000",
           token: "abc123xyz",
         })
         .ttl(3600)
@@ -681,14 +658,14 @@ describe("InsertBuilder", () => {
           eventType: cql.scalar.text,
           data: cql.scalar.text,
         })
-        .primaryKey("event_id")
+        .primaryKey("eventId")
         .build();
 
       const customTimestamp = 1234567890000000;
       const context = InsertBuilder.into(mockClient, table)
         .insert({
-          event_id: "123e4567-e89b-12d3-a456-426614174000",
-          event_type: "login",
+          eventId: "123e4567-e89b-12d3-a456-426614174000",
+          eventType: "login",
           data: '{"ip": "192.168.1.1"}',
         })
         .timestamp(customTimestamp)
@@ -699,7 +676,7 @@ describe("InsertBuilder", () => {
 
     it("should conditionally insert with IF NOT EXISTS", async () => {
       const table = CreateTableBuilder.create(mockClient)
-        .table("unique_usernames")
+        .table("uniqueUsernames")
         .schema({
           username: cql.scalar.text,
           userId: cql.scalar.uuid,
@@ -710,7 +687,7 @@ describe("InsertBuilder", () => {
       const context = InsertBuilder.into(mockClient, table)
         .insert({
           username: "alice",
-          user_id: "123e4567-e89b-12d3-a456-426614174000",
+          userId: "123e4567-e89b-12d3-a456-426614174000",
         })
         .ifNotExists()
         .build();

@@ -19,20 +19,20 @@ describe("CreateTypeBuilder", () => {
   describe("keyspace()", () => {
     it("should set the keyspace name", () => {
       const builder = CreateTypeBuilder.create(mockClient)
-        .keyspace("my_keyspace")
+        .keyspace("myKeyspace")
         .type("address")
         .schema({ street: cql.scalar.text });
 
-      expect(builder.toCQL()).toContain("my_keyspace.address");
+      expect(builder.toCQL()).toContain('"myKeyspace"."address"');
     });
 
     it("should allow keyspace to be set before type", () => {
       const builder = CreateTypeBuilder.create(mockClient)
         .keyspace("test")
-        .type("user_type")
+        .type("userType")
         .schema({ id: cql.scalar.uuid });
 
-      expect(builder.toCQL()).toContain("test.user_type");
+      expect(builder.toCQL()).toContain('"test"."userType"');
     });
   });
 
@@ -42,15 +42,15 @@ describe("CreateTypeBuilder", () => {
         .type("address")
         .schema({ street: cql.scalar.text });
 
-      expect(builder.toCQL()).toContain("address");
+      expect(builder.toCQL()).toContain('"address"');
     });
 
-    it("should handle type names with underscores", () => {
+    it("should handle type names with multiple words", () => {
       const builder = CreateTypeBuilder.create(mockClient)
-        .type("user_profile_data")
+        .type("userProfileData")
         .schema({ name: cql.scalar.text });
 
-      expect(builder.toCQL()).toContain("user_profile_data");
+      expect(builder.toCQL()).toContain('"userProfileData"');
     });
   });
 
@@ -103,8 +103,8 @@ describe("CreateTypeBuilder", () => {
         .schema({ value: cql.scalar.text });
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toContain("value");
-      expect(cqlString).toMatch(/\(\s*value/);
+      expect(cqlString).toContain('"value"');
+      expect(cqlString).toMatch(/\(\s*\n\s*"value"/);
     });
 
     it("should define UDT fields with multiple fields", () => {
@@ -118,34 +118,15 @@ describe("CreateTypeBuilder", () => {
         });
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toContain("street");
-      expect(cqlString).toContain("city");
-      expect(cqlString).toContain("zip_code");
-      expect(cqlString).toContain("country");
-    });
-
-    it("should convert field names to snake_case", () => {
-      const builder = CreateTypeBuilder.create(mockClient)
-        .type("user_profile")
-        .schema({
-          firstName: cql.scalar.text,
-          lastName: cql.scalar.text,
-          emailAddress: cql.scalar.text,
-          phoneNumber: cql.scalar.text,
-        });
-
-      const cqlString = builder.toCQL();
-      expect(cqlString).toContain("first_name");
-      expect(cqlString).toContain("last_name");
-      expect(cqlString).toContain("email_address");
-      expect(cqlString).toContain("phone_number");
-      expect(cqlString).not.toContain("firstName");
-      expect(cqlString).not.toContain("emailAddress");
+      expect(cqlString).toContain('"street"');
+      expect(cqlString).toContain('"city"');
+      expect(cqlString).toContain('"zipCode"');
+      expect(cqlString).toContain('"country"');
     });
 
     it("should handle various CQL types", () => {
       const builder = CreateTypeBuilder.create(mockClient)
-        .type("complex_type")
+        .type("complexType")
         .schema({
           id: cql.scalar.uuid,
           name: cql.scalar.text,
@@ -158,14 +139,14 @@ describe("CreateTypeBuilder", () => {
         });
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toContain("id");
-      expect(cqlString).toContain("name");
-      expect(cqlString).toContain("count");
-      expect(cqlString).toContain("value");
-      expect(cqlString).toContain("price");
-      expect(cqlString).toContain("timestamp");
-      expect(cqlString).toContain("active");
-      expect(cqlString).toContain("rating");
+      expect(cqlString).toContain('"id"');
+      expect(cqlString).toContain('"name"');
+      expect(cqlString).toContain('"count"');
+      expect(cqlString).toContain('"value"');
+      expect(cqlString).toContain('"price"');
+      expect(cqlString).toContain('"timestamp"');
+      expect(cqlString).toContain('"active"');
+      expect(cqlString).toContain('"rating"');
     });
 
     it("should format fields with line breaks", () => {
@@ -191,9 +172,9 @@ describe("CreateTypeBuilder", () => {
         });
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toContain("x");
-      expect(cqlString).toContain("y");
-      expect(cqlString).toContain("z");
+      expect(cqlString).toContain('"x"');
+      expect(cqlString).toContain('"y"');
+      expect(cqlString).toContain('"z"');
     });
   });
 
@@ -205,18 +186,18 @@ describe("CreateTypeBuilder", () => {
 
       const cqlString = builder.toCQL();
       expect(cqlString).toMatch(/^CREATE TYPE/);
-      expect(cqlString).toContain("address");
+      expect(cqlString).toContain('"address"');
       expect(cqlString).toMatch(/;$/);
     });
 
     it("should generate CREATE TYPE with keyspace", () => {
       const builder = CreateTypeBuilder.create(mockClient)
-        .keyspace("test_keyspace")
+        .keyspace("testKeyspace")
         .type("address")
         .schema({ street: cql.scalar.text });
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toContain("test_keyspace.address");
+      expect(cqlString).toContain('"testKeyspace"."address"');
     });
 
     it("should generate CREATE TYPE IF NOT EXISTS", () => {
@@ -231,8 +212,8 @@ describe("CreateTypeBuilder", () => {
 
     it("should generate complete CQL statement", () => {
       const builder = CreateTypeBuilder.create(mockClient)
-        .keyspace("my_keyspace")
-        .type("full_address")
+        .keyspace("myKeyspace")
+        .type("fullAddress")
         .ifNotExists()
         .schema({
           streetAddress: cql.scalar.text,
@@ -244,23 +225,23 @@ describe("CreateTypeBuilder", () => {
 
       const cqlString = builder.toCQL();
       expect(cqlString).toContain("CREATE TYPE");
-      expect(cqlString).toContain("my_keyspace.full_address");
+      expect(cqlString).toContain('"myKeyspace"."fullAddress"');
       expect(cqlString).toContain("IF NOT EXISTS");
-      expect(cqlString).toContain("street_address");
-      expect(cqlString).toContain("city");
-      expect(cqlString).toContain("state");
-      expect(cqlString).toContain("zip_code");
-      expect(cqlString).toContain("country");
+      expect(cqlString).toContain('"streetAddress"');
+      expect(cqlString).toContain('"city"');
+      expect(cqlString).toContain('"state"');
+      expect(cqlString).toContain('"zipCode"');
+      expect(cqlString).toContain('"country"');
       expect(cqlString).toMatch(/;$/);
     });
 
     it("should generate type without keyspace", () => {
       const builder = CreateTypeBuilder.create(mockClient)
-        .type("simple_type")
+        .type("simpleType")
         .schema({ value: cql.scalar.int });
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toMatch(/^CREATE TYPE simple_type/);
+      expect(cqlString).toMatch(/^CREATE TYPE "simpleType"/);
       expect(cqlString).not.toContain(".");
     });
 
@@ -281,7 +262,7 @@ describe("CreateTypeBuilder", () => {
 
       const cqlString = builder.toCQL();
       expect(cqlString).toMatch(
-        /CREATE TYPE test \(\s*field1[^,]+,\s*field2[^)]+\);/,
+        /CREATE TYPE "test" \(\s*"field1"[^,]+,\s*"field2"[^)]+\);/,
       );
     });
   });
@@ -298,7 +279,7 @@ describe("CreateTypeBuilder", () => {
 
     it("should preserve the context information", () => {
       const builder = CreateTypeBuilder.create(mockClient)
-        .keyspace("test_keyspace")
+        .keyspace("testKeyspace")
         .type("address")
         .schema({
           street: cql.scalar.text,
@@ -329,9 +310,9 @@ describe("CreateTypeBuilder", () => {
       expect(contextCQL).toBe(builderCQL);
     });
 
-    it("should preserve schema with snake_case conversion", () => {
+    it("should preserve schema with camelCase field names", () => {
       const builder = CreateTypeBuilder.create(mockClient)
-        .type("user_profile")
+        .type("userProfile")
         .schema({
           firstName: cql.scalar.text,
           lastName: cql.scalar.text,
@@ -339,8 +320,8 @@ describe("CreateTypeBuilder", () => {
 
       const context = builder.build();
       const typeRef = context.asType();
-      expect(typeRef._meta.schema).toHaveProperty("first_name");
-      expect(typeRef._meta.schema).toHaveProperty("last_name");
+      expect(typeRef._meta.schema).toHaveProperty("firstName");
+      expect(typeRef._meta.schema).toHaveProperty("lastName");
     });
   });
 
@@ -364,7 +345,7 @@ describe("CreateTypeBuilder", () => {
 
       it("should have correct metadata", () => {
         const builder = CreateTypeBuilder.create(mockClient)
-          .type("user_data")
+          .type("userData")
           .schema({
             id: cql.scalar.uuid,
             name: cql.scalar.text,
@@ -374,7 +355,7 @@ describe("CreateTypeBuilder", () => {
         const typeRef = context.asType();
 
         expect(typeRef._meta.kind).toBe("udt");
-        expect(typeRef._meta.name).toBe("user_data");
+        expect(typeRef._meta.name).toBe("userData");
         expect(typeRef._meta.schema).toBeDefined();
       });
 
@@ -394,7 +375,7 @@ describe("CreateTypeBuilder", () => {
 
         expect(typeRef._meta.schema).toHaveProperty("street");
         expect(typeRef._meta.schema).toHaveProperty("city");
-        expect(typeRef._meta.schema).toHaveProperty("zip_code");
+        expect(typeRef._meta.schema).toHaveProperty("zipCode");
       });
     });
 
@@ -408,7 +389,7 @@ describe("CreateTypeBuilder", () => {
         await context.execute();
 
         expect(mockClient.execute).toHaveBeenCalledWith(
-          expect.stringContaining("CREATE TYPE address"),
+          expect.stringContaining('CREATE TYPE "address"'),
         );
       });
 
@@ -422,7 +403,7 @@ describe("CreateTypeBuilder", () => {
         await context.execute();
 
         expect(mockClient.execute).toHaveBeenCalledWith(
-          expect.stringContaining("test.address"),
+          expect.stringContaining('"test"."address"'),
         );
       });
 
@@ -442,8 +423,8 @@ describe("CreateTypeBuilder", () => {
 
       it("should execute complete statement", async () => {
         const builder = CreateTypeBuilder.create(mockClient)
-          .keyspace("test_keyspace")
-          .type("full_address")
+          .keyspace("testKeyspace")
+          .type("fullAddress")
           .ifNotExists()
           .schema({
             street: cql.scalar.text,
@@ -456,7 +437,7 @@ describe("CreateTypeBuilder", () => {
 
         expect(mockClient.execute).toHaveBeenLastCalledWith(
           expect.stringMatching(
-            /CREATE TYPE test_keyspace\.full_address IF NOT EXISTS .*/,
+            /CREATE TYPE "testKeyspace"\."fullAddress" IF NOT EXISTS .*/,
           ),
         );
       });
@@ -486,7 +467,7 @@ describe("CreateTypeBuilder", () => {
         const cqlString = context.toCQL();
 
         expect(cqlString).toContain("CREATE TYPE");
-        expect(cqlString).toContain("address");
+        expect(cqlString).toContain('"address"');
       });
     });
   });
@@ -538,14 +519,13 @@ describe("CreateTypeBuilder", () => {
       const base = CreateTypeBuilder.create(mockClient).type("address");
       const withKeyspace = base.keyspace("test");
 
-      // With schema added
       const baseWithSchema = base.schema({ street: cql.scalar.text });
       const keyspaceWithSchema = withKeyspace.schema({
         street: cql.scalar.text,
       });
 
-      expect(baseWithSchema.toCQL()).not.toContain("test.");
-      expect(keyspaceWithSchema.toCQL()).toContain("test.");
+      expect(baseWithSchema.toCQL()).not.toContain('"test".');
+      expect(keyspaceWithSchema.toCQL()).toContain('"test".');
     });
   });
 
@@ -556,13 +536,13 @@ describe("CreateTypeBuilder", () => {
         .schema({ value: cql.scalar.text });
 
       expect(builder.toCQL()).toMatch(
-        /CREATE TYPE minimal \(\s*value[\s\S]*\);/,
+        /CREATE TYPE "minimal" \(\s*"value"[\s\S]*\);/,
       );
     });
 
     it("should handle type with many fields", () => {
       const builder = CreateTypeBuilder.create(mockClient)
-        .type("large_type")
+        .type("largeType")
         .schema({
           field1: cql.scalar.text,
           field2: cql.scalar.int,
@@ -577,8 +557,8 @@ describe("CreateTypeBuilder", () => {
         });
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toContain("field1");
-      expect(cqlString).toContain("field10");
+      expect(cqlString).toContain('"field1"');
+      expect(cqlString).toContain('"field10"');
     });
 
     it("should handle complex field names with numbers", () => {
@@ -591,22 +571,9 @@ describe("CreateTypeBuilder", () => {
         });
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toContain("field1_value");
-      expect(cqlString).toContain("field2_value");
-      expect(cqlString).toContain("version3_data");
-    });
-
-    it("should handle field names that are already snake_case", () => {
-      const builder = CreateTypeBuilder.create(mockClient)
-        .type("already_snake")
-        .schema({
-          field_one: cql.scalar.text,
-          field_two: cql.scalar.int,
-        });
-
-      const cqlString = builder.toCQL();
-      expect(cqlString).toContain("field_one");
-      expect(cqlString).toContain("field_two");
+      expect(cqlString).toContain('"field1Value"');
+      expect(cqlString).toContain('"field2Value"');
+      expect(cqlString).toContain('"version3Data"');
     });
 
     it("should throw error when building without type name", () => {
@@ -620,10 +587,10 @@ describe("CreateTypeBuilder", () => {
 
     it("should handle special characters in type names", () => {
       const builder = CreateTypeBuilder.create(mockClient)
-        .type("type_v1_final")
+        .type("typeV1Final")
         .schema({ data: cql.scalar.text });
 
-      expect(builder.toCQL()).toContain("type_v1_final");
+      expect(builder.toCQL()).toContain('"typeV1Final"');
     });
   });
 
@@ -642,14 +609,15 @@ describe("CreateTypeBuilder", () => {
         });
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toContain("CREATE TYPE app.address IF NOT EXISTS");
-      expect(cqlString).toContain("street");
-      expect(cqlString).toContain("zip_code");
+      expect(cqlString).toContain('"app"."address"');
+      expect(cqlString).toContain("IF NOT EXISTS");
+      expect(cqlString).toContain('"street"');
+      expect(cqlString).toContain('"zipCode"');
     });
 
     it("should create a user profile type", () => {
       const builder = CreateTypeBuilder.create(mockClient)
-        .type("user_profile")
+        .type("userProfile")
         .schema({
           displayName: cql.scalar.text,
           bio: cql.scalar.text,
@@ -659,10 +627,10 @@ describe("CreateTypeBuilder", () => {
         });
 
       const cqlString = builder.toCQL();
-      expect(cqlString).toContain("display_name");
-      expect(cqlString).toContain("avatar_url");
-      expect(cqlString).toContain("created_at");
-      expect(cqlString).toContain("is_verified");
+      expect(cqlString).toContain('"displayName"');
+      expect(cqlString).toContain('"avatarUrl"');
+      expect(cqlString).toContain('"createdAt"');
+      expect(cqlString).toContain('"isVerified"');
     });
 
     it("should create a coordinate type for geolocation", () => {
@@ -685,7 +653,7 @@ describe("CreateTypeBuilder", () => {
     it("should create and execute a product info type", async () => {
       const builder = CreateTypeBuilder.create(mockClient)
         .keyspace("ecommerce")
-        .type("product_info")
+        .type("productInfo")
         .ifNotExists()
         .schema({
           productId: cql.scalar.uuid,
@@ -698,7 +666,7 @@ describe("CreateTypeBuilder", () => {
       await context.execute();
 
       expect(mockClient.execute).toHaveBeenCalledWith(
-        expect.stringContaining("CREATE TYPE ecommerce.product_info"),
+        expect.stringContaining('"ecommerce"."productInfo"'),
       );
     });
   });
