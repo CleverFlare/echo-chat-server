@@ -23,7 +23,7 @@ export async function findUserById(
 
     return Result.Ok(Option.Some(user));
   } catch (err) {
-    return Result.Err(err as AppError<"server">);
+    return Result.Err(AppError.from(err as Error));
   }
 }
 
@@ -45,7 +45,7 @@ export async function findUserIdByHandle(
 
     return Result.Ok(Option.Some(user));
   } catch (err) {
-    return Result.Err(err as AppError<"server">);
+    return Result.Err(AppError.from(err as Error));
   }
 }
 
@@ -67,7 +67,7 @@ export async function findUserIdByEmail(
 
     return Result.Ok(Option.Some(user));
   } catch (err) {
-    return Result.Err(err as AppError<"server">);
+    return Result.Err(AppError.from(err as Error));
   }
 }
 
@@ -89,7 +89,7 @@ export async function findUserIdByPhone(
 
     return Result.Ok(Option.Some(user));
   } catch (err) {
-    return Result.Err(err as AppError<"server">);
+    return Result.Err(AppError.from(err as Error));
   }
 }
 
@@ -105,7 +105,7 @@ export async function insertUser(
 
     return Result.Ok(Option.None());
   } catch (err) {
-    return Result.Err(err as AppError<"server">);
+    return Result.Err(AppError.from(err as Error));
   }
 }
 
@@ -135,7 +135,7 @@ export async function removeUser(
 
     return Result.Ok(Option.None());
   } catch (err) {
-    return Result.Err(err as AppError<"server">);
+    return Result.Err(AppError.from(err as Error));
   }
 }
 
@@ -231,6 +231,6 @@ export async function updateUser(
 
     return Result.Ok(Option.None());
   } catch (err) {
-    return Result.Err(err as AppError<"server">);
+    return Result.Err(AppError.from(err as Error));
   }
 }

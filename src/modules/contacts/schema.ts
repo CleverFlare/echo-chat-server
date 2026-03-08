@@ -33,24 +33,28 @@ export const friendsBuilder = db
 
 export const friends = friendsBuilder.build();
 
-export const chatsBuilder = db
-  .create()
-  .table("chats")
-  .schema({
-    avatar: cql.scalar.text,
-    firstName: cql.scalar.text,
-    lastName: cql.scalar.text,
+export const chatsBuilder = db.create().table("chats").schema({
+  avatar: cql.scalar.text,
+  firstName: cql.scalar.text,
+  lastName: cql.scalar.text,
 
-    userId: cql.scalar.text,
-    otherUserId: cql.scalar.text,
-    chatId: cql.scalar.text,
-    lastMessage: cql.scalar.text,
-    lastMessageAt: cql.scalar.timestamp,
-    isFriend: cql.scalar.boolean,
-  })
-  .primaryKey("userId", "lastMessageAt", "chatId");
+  userId: cql.scalar.text,
+  otherUserId: cql.scalar.text,
+  chatId: cql.scalar.text,
+  lastMessage: cql.scalar.text,
+  lastMessageAt: cql.scalar.timestamp,
+  isFriend: cql.scalar.boolean,
+});
 
-export const chats = chatsBuilder.build();
+export const chats = chatsBuilder
+  .primaryKey("userId", "lastMessageAt", "chatId")
+  .build();
+
+export const chatsByChatId = chatsBuilder.primaryKey(
+  "chatId",
+  "lastMessageAt",
+  "userId",
+);
 
 export const friendRequestsBuilder = db
   .create()

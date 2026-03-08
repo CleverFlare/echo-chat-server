@@ -8,6 +8,7 @@ export class AppError<
     message: string,
     public readonly kind: Kind,
     public readonly code?: string,
+    public readonly cause?: unknown,
   ) {
     super(message);
     this.name = "AppError";
@@ -19,5 +20,12 @@ export class AppError<
 
   static server(message: string, code?: string) {
     return new AppError(message, "server", code);
+  }
+
+  static from(err: unknown) {
+    if (err instanceof AppError) return err;
+
+    const message = err instanceof Error ? err.message : String(err);
+    return new AppError(message, "server", "Internal server error", err);
   }
 }
