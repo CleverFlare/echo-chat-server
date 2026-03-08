@@ -5,11 +5,11 @@ export const peopleBuilder = db
   .create()
   .table("people")
   .schema({
-    owner_id: cql.scalar.text,
-    contact_id: cql.scalar.text,
-    created_at: cql.scalar.timestamp,
+    ownerId: cql.scalar.text,
+    contactId: cql.scalar.text,
+    createdAt: cql.scalar.timestamp,
   })
-  .primaryKey("owner_id", "contact_id");
+  .primaryKey("ownerId", "contactId");
 
 export const people = peopleBuilder.build();
 
@@ -17,11 +17,11 @@ export const friendsBuilder = db
   .create()
   .table("friends")
   .schema({
-    user_id: cql.scalar.text,
-    friend_id: cql.scalar.text,
-    created_at: cql.scalar.timestamp,
+    userId: cql.scalar.text,
+    friendId: cql.scalar.text,
+    createdAt: cql.scalar.timestamp,
   })
-  .primaryKey("user_id", "friend_id");
+  .primaryKey("userId", "friendId");
 
 export const friends = friendsBuilder.build();
 
@@ -29,40 +29,40 @@ export const chatsBuilder = db
   .create()
   .table("chats")
   .schema({
-    user_id: cql.scalar.text,
-    other_user_id: cql.scalar.text,
-    chat_id: cql.scalar.text,
-    last_message: cql.scalar.text,
-    last_message_at: cql.scalar.timestamp,
-    is_friend: cql.scalar.boolean,
+    userId: cql.scalar.text,
+    otherUserId: cql.scalar.text,
+    chatId: cql.scalar.text,
+    lastMessage: cql.scalar.text,
+    lastMessageAt: cql.scalar.timestamp,
+    isFriend: cql.scalar.boolean,
   })
-  .primaryKey("user_id", "last_message_at", "chat_id");
+  .primaryKey("userId", "lastMessageAt", "chatId");
 
 export const chats = chatsBuilder.build();
 
 export const friendRequestsBuilder = db
   .create()
-  .table("friends_requests")
+  .table("friendsRequests")
   .schema({
-    receiver_id: cql.scalar.text,
-    sender_id: cql.scalar.text,
-    created_at: cql.scalar.timestamp,
+    receiverId: cql.scalar.text,
+    senderId: cql.scalar.text,
+    createdAt: cql.scalar.timestamp,
     status: cql.scalar.text,
   })
-  .primaryKey("receiver_id", "sender_id");
+  .primaryKey("receiverId", "senderId");
 
 export const friendRequests = friendRequestsBuilder.build();
 
 export const friendRequestsBySenderIdBuilder = db
   .create()
-  .table("friend_requests_by_sender_id")
+  .table("friendRequestsBySenderId")
   .schema({
-    receiver_id: cql.scalar.text,
-    sender_id: cql.scalar.text,
-    created_at: cql.scalar.timestamp,
+    receiverId: cql.scalar.text,
+    senderId: cql.scalar.text,
+    createdAt: cql.scalar.timestamp,
     status: cql.scalar.text,
   })
-  .primaryKey("sender_id", "receiver_id");
+  .primaryKey("senderId", "receiverId");
 
 export const friendRequestsBySenderId = friendRequestsBySenderIdBuilder.build();
 
@@ -70,10 +70,10 @@ export const blocksBuilder = db
   .create()
   .table("blocks")
   .schema({
-    blocker_id: cql.scalar.text,
-    blocked_id: cql.scalar.text,
-    created_at: cql.scalar.timestamp,
+    blockerId: cql.scalar.text,
+    blockedId: cql.scalar.text,
+    createdAt: cql.scalar.timestamp,
   })
-  .primaryKey("blocker_id", "blocked_id");
+  .primaryKey("blockerId", "blockedId");
 
 export const blocks = blocksBuilder.build();

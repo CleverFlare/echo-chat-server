@@ -1,14 +1,12 @@
 import { InferSchema } from "@/cql/types";
 import { Result } from "@/utils/rust-types";
-import { people } from "./schema";
-import { findPeopleByUserId } from "./repository";
-import { getUserByHandle } from "../auth/user.service";
-import { CamelCasedProperties } from "type-fest";
-import { toCamelCaseProperties } from "@/utils/naming-utilities";
+import { people } from "../schema";
+import { getUserByHandle } from "@/modules/auth/user.service";
+import { findPeopleByUserId } from "../people/repository";
 
 export async function getPersonByHandle(
   handle: string,
-): Promise<Result<CamelCasedProperties<InferSchema<typeof people>>, Error>> {
+): Promise<Result<InferSchema<typeof people>, Error>> {
   const contactsResult = await getUserByHandle(handle);
 
   return contactsResult.match({
@@ -16,7 +14,7 @@ export async function getPersonByHandle(
       const personResult = await findPeopleByUserId(user.id);
 
       return personResult.match({
-        Ok: (personOption) => Result.Ok(toCamelCaseProperties(personOption[0])),
+        Ok: (personOption) => Result.Ok(personOption[0]),
         Err: (error) => Result.Err(error),
       });
     },
@@ -26,12 +24,11 @@ export async function getPersonByHandle(
 
 export async function getPeopleByUserId(
   userId: string,
-): Promise<Result<CamelCasedProperties<InferSchema<typeof people>>[], Error>> {
+): Promise<Result<InferSchema<typeof people>[], Error>> {
   const peopleResult = await findPeopleByUserId(userId);
 
   return peopleResult.match({
-    Ok: (people) =>
-      Result.Ok(people.map((person) => toCamelCaseProperties(person))),
+    Ok: (people) => Result.Ok(people.map((person) => person)),
     Err: (error) => Result.Err(error),
   });
 }

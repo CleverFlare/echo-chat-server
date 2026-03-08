@@ -12,7 +12,9 @@
     "build": "bun build src/index.ts --outdir dist",
     "start": "bun src/index.ts",
     "env:generate": "bun src/env-types.generate.ts",
-    "migrate": "bun src/migrate.ts && bunx @better-auth/cli@latest migrate --config src/utils/auth.ts",
+    "migrate:scylla": "bun src/migrate.ts",
+    "migrate:postgres": "bunx @better-auth/cli@latest migrate --config src/utils/auth.ts",
+    "migrate": "bun run migrate:scylla && bun run migrate:postgres",
     "test:types": "tsd"
   },
   "overrides": {
@@ -50,7 +52,7 @@
     "stringify-object": "^5.0.0",
     "type-fest": "^5.4.3",
     "ws": "^8.19.0",
-    "zod": "^3.25.23"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",

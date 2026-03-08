@@ -149,7 +149,12 @@ export async function updateUser(
       .build()
       .execute();
 
-    if (!userRecord[0]) return Result.Ok(Option.None());
+    if (!userRecord[0])
+      return Result.Err(
+        new Error(
+          `User with ID (${id}) does not exist. Can't update its data.`,
+        ),
+      );
 
     const filteredInput = Object.entries(user)
       // eslint-disable-next-line
@@ -175,8 +180,17 @@ export async function updateUser(
     if (user.email) {
       updates.push(
         userByEmail
+          .delete()
+          .where("email", "=", userRecord[0].email)
+          .build()
+          .execute(),
+        userByEmail.insert(data).build().execute(),
+      );
+    } else {
+      updates.push(
+        userByEmail
           .update()
-          .set("email", user.email)
+          .setMany(data)
           .where("email", "=", userRecord[0].email)
           .build()
           .execute(),
@@ -186,8 +200,17 @@ export async function updateUser(
     if (user.phone) {
       updates.push(
         userByPhone
+          .delete()
+          .where("phone", "=", userRecord[0].phone)
+          .build()
+          .execute(),
+        userByPhone.insert(data).build().execute(),
+      );
+    } else {
+      updates.push(
+        userByPhone
           .update()
-          .set("phone", user.phone)
+          .setMany(data)
           .where("phone", "=", userRecord[0].phone)
           .build()
           .execute(),

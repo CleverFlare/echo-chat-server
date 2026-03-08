@@ -3,12 +3,12 @@ import { db } from "@/utils/database";
 
 export const userByIdBuilder = db
   .create()
-  .table("user_by_id")
+  .table("userById")
   .schema({
     id: cql.scalar.text,
     handle: cql.scalar.text,
-    first_name: cql.scalar.text,
-    last_name: cql.scalar.text,
+    firstName: cql.scalar.text,
+    lastName: cql.scalar.text,
     email: cql.scalar.text,
     phone: cql.scalar.text,
     avatar: cql.scalar.text,
@@ -21,10 +21,17 @@ export const userById = userByIdBuilder.build();
 
 export const userByPhoneBuilder = db
   .create()
-  .table("user_by_phone")
+  .table("userByPhone")
   .schema({
-    phone: cql.scalar.text,
     id: cql.scalar.text,
+    handle: cql.scalar.text,
+    firstName: cql.scalar.text,
+    lastName: cql.scalar.text,
+    email: cql.scalar.text,
+    phone: cql.scalar.text,
+    avatar: cql.scalar.text,
+    created_at: cql.scalar.timestamp,
+    bio: cql.scalar.text,
   })
   .primaryKey("phone");
 
@@ -32,10 +39,17 @@ export const userByPhone = userByPhoneBuilder.build();
 
 export const userByEmailBuilder = db
   .create()
-  .table("user_by_email")
+  .table("userByEmail")
   .schema({
-    email: cql.scalar.text,
     id: cql.scalar.text,
+    handle: cql.scalar.text,
+    firstName: cql.scalar.text,
+    lastName: cql.scalar.text,
+    email: cql.scalar.text,
+    phone: cql.scalar.text,
+    avatar: cql.scalar.text,
+    created_at: cql.scalar.timestamp,
+    bio: cql.scalar.text,
   })
   .primaryKey("email");
 
@@ -43,10 +57,17 @@ export const userByEmail = userByEmailBuilder.build();
 
 export const userByHandleBuilder = db
   .create()
-  .table("user_by_handle")
+  .table("userByHandle")
   .schema({
-    handle: cql.scalar.text,
     id: cql.scalar.text,
+    handle: cql.scalar.text,
+    firstName: cql.scalar.text,
+    lastName: cql.scalar.text,
+    email: cql.scalar.text,
+    phone: cql.scalar.text,
+    avatar: cql.scalar.text,
+    created_at: cql.scalar.timestamp,
+    bio: cql.scalar.text,
   })
   .primaryKey("handle");
 

@@ -5,7 +5,7 @@ import { CamelCasedProperties } from "type-fest";
 export type ChannelEventMap = {
   "new-contact": unknown;
   Ping: "Pong";
-  "new-friend-requests:[id]": CamelCasedProperties<
+  "new-friend-request:[id]": CamelCasedProperties<
     InferSchema<typeof friendRequests>
   >;
 };

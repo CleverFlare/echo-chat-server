@@ -20,7 +20,7 @@ export const publish = <const Channel extends keyof ChannelEventMap>(
     (_, key) => params[key],
   );
 
-  publisher.publish(resolvedChannel, JSON.stringify(event));
+  return publisher.publish(resolvedChannel, JSON.stringify(event));
 };
 
 export const subscribe = <const Channel extends keyof ChannelEventMap>(
@@ -44,7 +44,7 @@ export const subscribe = <const Channel extends keyof ChannelEventMap>(
     (_, key) => params[key],
   );
 
-  subscriber.subscribe(resolvedChannel, (message: string) =>
+  return subscriber.subscribe(resolvedChannel, (message: string) =>
     Promise.resolve(handler(JSON.parse(message))).catch(logger.error),
   );
 };

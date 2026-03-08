@@ -1,6 +1,6 @@
 import { Result } from "@/utils/rust-types";
+import { getUserById } from "@/modules/auth/user.service";
 import { findChats } from "./repository";
-import { getUserById } from "../auth/user.service";
 
 type Chat = {
   userId: string;
@@ -19,18 +19,18 @@ export async function getChatsByUserId(
       Ok: (chats) =>
         Promise.all(
           chats.map(async (chat) => {
-            return (await getUserById(chat.other_user_id)).match({
+            return (await getUserById(chat.otherUserId)).match({
               Ok: (user) =>
                 ({
-                  userId: chat.user_id,
-                  otherPartyId: chat.other_user_id,
+                  userId: chat.userId,
+                  otherPartyId: chat.otherUserId,
                   avatar: user.avatar,
                   lastMessage: {
-                    content: chat.last_message,
-                    createdAt: chat.last_message_at,
+                    content: chat.lastMessage,
+                    createdAt: chat.lastMessageAt,
                   },
-                  firstName: user.first_name,
-                  lastName: user.last_name,
+                  firstName: user.firstName,
+                  lastName: user.lastName,
                 }) as Chat,
               Err: (error) => {
                 throw error;
