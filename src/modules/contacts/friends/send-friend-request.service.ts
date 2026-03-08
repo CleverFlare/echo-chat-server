@@ -46,9 +46,14 @@ export async function sendFriendRequest(
       return requestResult.match({
         Ok: async (friendRequest) => {
           publish(
-            "new-friend-request:[id]",
+            "friend.request.received:[id]",
             { id: friendRequest.senderId },
-            friendRequest,
+            {
+              payload: friendRequest,
+              version: 1,
+              event: "friend.request.received",
+              occurredAt: new Date().toISOString(),
+            },
           );
 
           return Result.Ok(friendRequest);

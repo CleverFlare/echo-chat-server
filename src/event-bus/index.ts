@@ -48,3 +48,20 @@ export const subscribe = <const Channel extends keyof ChannelEventMap>(
     Promise.resolve(handler(JSON.parse(message))).catch(logger.error),
   );
 };
+
+export const unsubscribe = <const Channel extends keyof ChannelEventMap>(
+  channel: Channel,
+  ...args: keyof ExtractParams<Channel> extends never
+    ? []
+    : [params: ExtractParams<Channel>]
+) => {
+  const [params] = (args.length === 1 ? [args[0]] : [{}]) as [
+    Record<string, string>,
+  ];
+
+  const resolvedChannel = channel.replace(
+    /\[(\w+)\]/g,
+    (_, key) => params[key],
+  );
+  return subscriber.unsubscribe(resolvedChannel);
+};

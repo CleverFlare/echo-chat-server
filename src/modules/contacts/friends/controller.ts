@@ -4,8 +4,14 @@ import z from "zod/v4";
 import { sendFriendRequest } from "./send-friend-request.service";
 import logger from "@/utils/logger";
 import { subscribe } from "@/event-bus";
-import { getUserById } from "@/modules/auth/user.service";
 import { getFriends } from "./get-friends.service";
+import { getFriendRequests } from "./get-friend-requests.service";
+import {
+  acceptFriendRequest,
+  deleteFriendRequest,
+  rejectFriendRequest,
+} from "./friend-request-status.service";
+import { unfriend } from "./unfriend.service";
 
 export const friendsController = new Elysia()
   .use(authMiddleware)
@@ -45,20 +51,95 @@ export const friendsController = new Elysia()
       }),
     },
   ) // send a friend request
-  .get("/friends/requests", () => {}, { auth: true }) // list incoming + outgoing requests
-  .ws("/friend-requests", {
-    open({ data: { user }, send }) {
-      subscribe("new-friend-request:[id]", { id: user.id }, async (user) => {
-        const userResult = await getUserById(user.senderId);
+  .get(
+    "/friends/requests",
+    async ({ user, status }) => {
+      const friendRequestsResult = await getFriendRequests(user.id);
 
-        if (userResult.isOk()) {
-          send(userResult.unwrap());
-        }
-      });
+      if (friendRequestsResult.isErr()) {
+        logger.error(friendRequestsResult.unwrapErr().message);
+
+        return status("Internal Server Error", "Internal Server Error");
+      }
+
+      return status("OK", friendRequestsResult.unwrap());
+    },
+    { auth: true },
+  ) // list incoming + outgoing requests
+  .ws("/friend/requests", {
+    open({ data: { user }, send }) {
+      subscribe(
+        "friend.request.received:[id]",
+        { id: user.id },
+        async (user) => {
+          send(user.payload);
+        },
+      );
+
+      subscribe(
+        "friend.request.responded:[id]",
+        { id: user.id },
+        async (user) => {
+          send(user.payload);
+        },
+      );
     },
     auth: true,
   })
-  .delete("/friends/request/:userId", () => {}, { auth: true }) // cancel an outgoing request
-  .post("/friends/requests/:userId/accept", () => {}, { auth: true })
-  .post("/friends/requests/:userId/decline", () => {}, { auth: true })
-  .delete("/friends/:userId", () => {}, { auth: true }); // unfriend (moves them to people)
+  .delete(
+    "/friends/request/:userId",
+    async ({ user, params: { userId }, status }) => {
+      const result = await deleteFriendRequest(user.id, userId);
+
+      if (result.isErr()) {
+        logger.error(result.unwrapErr().message);
+        return status("Internal Server Error", "Internal Server Error");
+      }
+
+      return status("OK", "Deleted");
+    },
+    { auth: true },
+  ) // cancel an outgoing request
+  .post(
+    "/friends/requests/:userId/accept",
+    async ({ user, status, params: { userId } }) => {
+      const result = await acceptFriendRequest(user.id, userId);
+
+      if (result.isErr()) {
+        logger.error(result.unwrapErr().message);
+        return status("Internal Server Error", "Internal Server Error");
+      }
+
+      return status("OK", "Accepted");
+    },
+    { auth: true },
+  )
+  .post(
+    "/friends/requests/:userId/decline",
+    async ({ user, status, params: { userId } }) => {
+      const result = await rejectFriendRequest(user.id, userId);
+
+      if (result.isErr()) {
+        logger.error(result.unwrapErr().message);
+        return status("Internal Server Error", "Internal Server Error");
+      }
+
+      return status("OK", "Rejected");
+    },
+    { auth: true },
+  )
+  .delete(
+    "/friends/:userId",
+    async ({ user, params: { userId }, status }) => {
+      const result = await unfriend(user.id, userId);
+
+      if (result.isErr()) {
+        logger.error(result.unwrapErr().message);
+
+        return status("Internal Server Error", "Internal Server Error");
+      }
+
+      return status("OK", "Unfriended");
+    },
+    { auth: true },
+  ); // unfriend (moves them to people)

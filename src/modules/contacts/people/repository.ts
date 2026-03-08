@@ -17,3 +17,33 @@ export async function findPeopleByUserId(
     return Result.Err(err as Error);
   }
 }
+
+export async function insertPerson(
+  person: InferSchema<typeof people>,
+): Promise<Result<void, Error>> {
+  try {
+    await people.insert(person).build().execute();
+
+    return Result.Ok(undefined);
+  } catch (err) {
+    return Result.Err(err as Error);
+  }
+}
+
+export async function removePerson(
+  userId: string,
+  personId: string,
+): Promise<Result<void, Error>> {
+  try {
+    await people
+      .delete()
+      .where("ownerId", "=", userId)
+      .where("contactId", "=", personId)
+      .build()
+      .execute();
+
+    return Result.Ok(undefined);
+  } catch (err) {
+    return Result.Err(err as Error);
+  }
+}

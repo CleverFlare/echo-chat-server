@@ -2,7 +2,7 @@ import { InferSchema } from "@/cql/types";
 import { Result } from "@/utils/rust-types";
 import { people } from "../schema";
 import { getUserByHandle } from "@/modules/auth/user.service";
-import { findPeopleByUserId } from "../people/repository";
+import { findPeopleByUserId } from "./repository";
 
 export async function getPersonByHandle(
   handle: string,

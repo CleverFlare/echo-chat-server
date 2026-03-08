@@ -3,11 +3,24 @@ import { friendRequests } from "@/modules/contacts/schema";
 import { CamelCasedProperties } from "type-fest";
 
 export type ChannelEventMap = {
-  "new-contact": unknown;
-  Ping: "Pong";
-  "new-friend-request:[id]": CamelCasedProperties<
-    InferSchema<typeof friendRequests>
-  >;
+  ping: {
+    event: "ping";
+    version: 1;
+    occurredAt: string;
+    payload: "pong";
+  };
+  "friend.request.received:[id]": {
+    event: "friend.request.received";
+    version: 1;
+    occurredAt: string;
+    payload: CamelCasedProperties<InferSchema<typeof friendRequests>>;
+  };
+  "friend.request.responded:[id]": {
+    event: "friend.request.responded";
+    version: 1;
+    occurredAt: string;
+    payload: { userId: string; status: "accepted" | "rejected" };
+  };
 };
 
 export type ExtractParams<S extends string> =
