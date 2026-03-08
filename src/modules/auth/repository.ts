@@ -1,12 +1,13 @@
 import { InferSchema } from "@/cql/types";
 import { userByEmail, userByHandle, userById, userByPhone } from "./schema";
 import { Option, Result } from "@/utils/rust-types";
+import { AppError } from "@/utils/errors";
 
 type UserById = typeof userById;
 
 export async function findUserById(
   id: string,
-): Promise<Result<Option<InferSchema<UserById>>, Error>> {
+): Promise<Result<Option<InferSchema<UserById>>, AppError>> {
   try {
     const results = await userById
       .select("*")
@@ -22,13 +23,13 @@ export async function findUserById(
 
     return Result.Ok(Option.Some(user));
   } catch (err) {
-    return Result.Err(err as Error);
+    return Result.Err(err as AppError<"server">);
   }
 }
 
 export async function findUserIdByHandle(
   handle: string,
-): Promise<Result<Option<InferSchema<typeof userByHandle>>, Error>> {
+): Promise<Result<Option<InferSchema<typeof userByHandle>>, AppError>> {
   try {
     const results = await userByHandle
       .select("*")
@@ -44,13 +45,13 @@ export async function findUserIdByHandle(
 
     return Result.Ok(Option.Some(user));
   } catch (err) {
-    return Result.Err(err as Error);
+    return Result.Err(err as AppError<"server">);
   }
 }
 
 export async function findUserIdByEmail(
   email: string,
-): Promise<Result<Option<InferSchema<typeof userByEmail>>, Error>> {
+): Promise<Result<Option<InferSchema<typeof userByEmail>>, AppError>> {
   try {
     const results = await userByEmail
       .select("*")
@@ -66,13 +67,13 @@ export async function findUserIdByEmail(
 
     return Result.Ok(Option.Some(user));
   } catch (err) {
-    return Result.Err(err as Error);
+    return Result.Err(err as AppError<"server">);
   }
 }
 
 export async function findUserIdByPhone(
   email: string,
-): Promise<Result<Option<InferSchema<typeof userByPhone>>, Error>> {
+): Promise<Result<Option<InferSchema<typeof userByPhone>>, AppError>> {
   try {
     const results = await userByPhone
       .select("*")
@@ -88,13 +89,13 @@ export async function findUserIdByPhone(
 
     return Result.Ok(Option.Some(user));
   } catch (err) {
-    return Result.Err(err as Error);
+    return Result.Err(err as AppError<"server">);
   }
 }
 
 export async function insertUser(
   user: InferSchema<UserById>,
-): Promise<Result<Option<never>, Error>> {
+): Promise<Result<Option<never>, AppError>> {
   try {
     await userById.insert(user).build().execute();
 
@@ -104,13 +105,13 @@ export async function insertUser(
 
     return Result.Ok(Option.None());
   } catch (err) {
-    return Result.Err(err as Error);
+    return Result.Err(err as AppError<"server">);
   }
 }
 
 export async function removeUser(
   id: string,
-): Promise<Result<Option<never>, Error>> {
+): Promise<Result<Option<never>, AppError>> {
   try {
     const userRecord = await userById
       .select()
@@ -134,14 +135,14 @@ export async function removeUser(
 
     return Result.Ok(Option.None());
   } catch (err) {
-    return Result.Err(err as Error);
+    return Result.Err(err as AppError<"server">);
   }
 }
 
 export async function updateUser(
   id: string,
   user: Partial<Omit<InferSchema<UserById>, "created_at" | "id">>,
-): Promise<Result<Option<never>, Error>> {
+): Promise<Result<Option<never>, AppError>> {
   try {
     const userRecord = await userById
       .select()
@@ -151,7 +152,7 @@ export async function updateUser(
 
     if (!userRecord[0])
       return Result.Err(
-        new Error(
+        AppError.client(
           `User with ID (${id}) does not exist. Can't update its data.`,
         ),
       );
@@ -224,12 +225,12 @@ export async function updateUser(
     if (failed.length > 0) {
       // log, compensate, or return a specific error
       return Result.Err(
-        new Error(failed.map((failure) => failure.reason).join(" - ")),
+        AppError.server(failed.map((failure) => failure.reason).join(" - ")),
       );
     }
 
     return Result.Ok(Option.None());
   } catch (err) {
-    return Result.Err(err as Error);
+    return Result.Err(err as AppError<"server">);
   }
 }

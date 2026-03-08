@@ -1,10 +1,12 @@
 // @/utils/errors.ts
 export type AppErrorKind = "client" | "server";
 
-export class AppError extends Error {
+export class AppError<
+  Kind extends AppErrorKind = "server" | "client",
+> extends Error {
   constructor(
     message: string,
-    public readonly kind: AppErrorKind,
+    public readonly kind: Kind,
     public readonly code?: string,
   ) {
     super(message);
