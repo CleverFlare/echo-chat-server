@@ -12,12 +12,16 @@ export const chatsController = new Elysia()
       const blockResult = await blockPerson(user.id, userId);
 
       if (blockResult.isErr()) {
-        logger.error(blockResult.unwrapErr().message);
+        const error = blockResult.unwrapErr();
 
-        return status(
-          "Internal Server Error",
-          "Please check the server logs for details",
-        );
+        switch (error.kind) {
+          case "server":
+            logger.error(blockResult.unwrapErr().message);
+
+            return status("Internal Server Error", "Internal Server Error");
+          case "client":
+            return status("Bad Request", error.message);
+        }
       }
 
       return status("OK", { userId });

@@ -1,10 +1,11 @@
 import { Result } from "@/utils/rust-types";
 import { findBlock, insertBlock } from "./repository";
+import { AppError } from "@/utils/errors";
 
 export async function blockPerson(
   userId: string,
   personId: string,
-): Promise<Result<void, Error>> {
+): Promise<Result<void, AppError>> {
   const isAlreadyBlockedResult = await findBlock(userId, personId);
 
   if (isAlreadyBlockedResult.isErr()) {
