@@ -10,6 +10,22 @@ export const chatsController = new Elysia()
     "/blocks",
     async ({ user, status }) => {
       const result = await getBlocks(user.id);
+
+      if (result.isErr()) {
+        const error = result.unwrapErr();
+
+        switch (error.kind) {
+          case "server":
+            logger.error(error.message);
+            return status("Internal Server Error", "Internal Server Error");
+          case "client":
+            return status("Bad Request", error.message);
+        }
+      }
+
+      const blocks = result.unwrap();
+
+      return status("OK", blocks);
     },
     { auth: true },
   ) // list app-level blocks
