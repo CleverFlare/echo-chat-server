@@ -2,10 +2,17 @@ import { authMiddleware } from "@/utils/auth";
 import Elysia from "elysia";
 import { blockPerson } from "./block.service";
 import logger from "@/utils/logger";
+import { getBlocks } from "./get-blocks.service";
 
 export const chatsController = new Elysia()
   .use(authMiddleware)
-  .get("/blocks", () => {}, { auth: true }) // list app-level blocks
+  .get(
+    "/blocks",
+    async ({ user, status }) => {
+      const result = await getBlocks(user.id);
+    },
+    { auth: true },
+  ) // list app-level blocks
   .post(
     "/blocks/:userId",
     async ({ params: { userId }, user, status }) => {

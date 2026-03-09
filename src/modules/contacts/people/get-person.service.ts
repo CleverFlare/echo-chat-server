@@ -3,10 +3,11 @@ import { Result } from "@/utils/rust-types";
 import { people } from "../schema";
 import { getUserByHandle } from "@/modules/auth/user.service";
 import { findPeopleByUserId } from "./repository";
+import { AppError } from "@/utils/errors";
 
 export async function getPersonByHandle(
   handle: string,
-): Promise<Result<InferSchema<typeof people>, Error>> {
+): Promise<Result<InferSchema<typeof people>, AppError>> {
   const contactsResult = await getUserByHandle(handle);
 
   return contactsResult.match({
@@ -24,7 +25,7 @@ export async function getPersonByHandle(
 
 export async function getPeopleByUserId(
   userId: string,
-): Promise<Result<InferSchema<typeof people>[], Error>> {
+): Promise<Result<InferSchema<typeof people>[], AppError>> {
   const peopleResult = await findPeopleByUserId(userId);
 
   return peopleResult.match({

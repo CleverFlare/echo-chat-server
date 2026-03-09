@@ -9,11 +9,12 @@ import {
 } from "@/modules/auth/user.service";
 import { findFriendRequest, insertFriendRequest } from "./repository";
 import { publish } from "@/event-bus";
+import { AppError } from "@/utils/errors";
 
 async function resolveUserId(
   via: "email" | "id" | "phone" | "handle",
   value: string,
-): Promise<Result<string, Error>> {
+): Promise<Result<string, AppError>> {
   switch (via) {
     case "email":
       return getUserIdByEmail(value);
@@ -35,7 +36,7 @@ export async function sendFriendRequest(
   senderId: string,
   via: "email" | "id" | "phone" | "handle",
   value: string,
-): Promise<Result<InferSchema<typeof friendRequests>, Error>> {
+): Promise<Result<InferSchema<typeof friendRequests>, AppError>> {
   const recipientResult = await resolveUserId(via, value);
 
   return recipientResult.match({

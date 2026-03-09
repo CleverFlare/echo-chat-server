@@ -1,11 +1,12 @@
 import { Result } from "@/utils/rust-types";
 import { findFriend, removeFriend } from "./repository";
 import { addPerson } from "../people/add-person.service";
+import { AppError } from "@/utils/errors";
 
 export async function unfriend(
   userId: string,
   friendId: string,
-): Promise<Result<void, Error>> {
+): Promise<Result<void, AppError>> {
   const result = await findFriend(userId, friendId);
 
   if (result.isErr()) {
@@ -15,7 +16,9 @@ export async function unfriend(
   const option = result.unwrap();
 
   if (option.isNone()) {
-    return Result.Err(new Error(`No friend was found with ID of ${friendId}`));
+    return Result.Err(
+      AppError.client(`No friend was found with ID of ${friendId}`),
+    );
   }
 
   const friend = option.unwrap();

@@ -21,9 +21,16 @@ export const friendsController = new Elysia()
       const friendsResult = await getFriends(user.id);
 
       if (friendsResult.isErr()) {
-        logger.error(friendsResult.unwrapErr().message);
+        const error = friendsResult.unwrapErr();
 
-        return status("Internal Server Error", "Internal Server Error");
+        switch (error.kind) {
+          case "server":
+            logger.error(error.message);
+
+            return status("Internal Server Error", "Internal Server Error");
+          case "client":
+            return status("OK", error.message);
+        }
       }
 
       return status("OK", friendsResult.unwrap());
@@ -36,9 +43,16 @@ export const friendsController = new Elysia()
       const friendRequest = await sendFriendRequest(user.id, via, value);
 
       if (friendRequest.isErr()) {
-        logger.error(friendRequest.unwrapErr().message);
+        const error = friendRequest.unwrapErr();
 
-        status("Internal Server Error", "Internal Server Error");
+        switch (error.kind) {
+          case "server":
+            logger.error(error.message);
+
+            return status("Internal Server Error", "Internal Server Error");
+          case "client":
+            return status("OK", error.message);
+        }
       }
 
       status("OK", friendRequest.unwrap());
@@ -57,9 +71,16 @@ export const friendsController = new Elysia()
       const friendRequestsResult = await getFriendRequests(user.id);
 
       if (friendRequestsResult.isErr()) {
-        logger.error(friendRequestsResult.unwrapErr().message);
+        const error = friendRequestsResult.unwrapErr();
 
-        return status("Internal Server Error", "Internal Server Error");
+        switch (error.kind) {
+          case "server":
+            logger.error(error.message);
+
+            return status("Internal Server Error", "Internal Server Error");
+          case "client":
+            return status("OK", error.message);
+        }
       }
 
       return status("OK", friendRequestsResult.unwrap());
@@ -92,8 +113,16 @@ export const friendsController = new Elysia()
       const result = await deleteFriendRequest(user.id, userId);
 
       if (result.isErr()) {
-        logger.error(result.unwrapErr().message);
-        return status("Internal Server Error", "Internal Server Error");
+        const error = result.unwrapErr();
+
+        switch (error.kind) {
+          case "server":
+            logger.error(error.message);
+
+            return status("Internal Server Error", "Internal Server Error");
+          case "client":
+            return status("OK", error.message);
+        }
       }
 
       return status("OK", "Deleted");
@@ -106,8 +135,16 @@ export const friendsController = new Elysia()
       const result = await acceptFriendRequest(user.id, userId);
 
       if (result.isErr()) {
-        logger.error(result.unwrapErr().message);
-        return status("Internal Server Error", "Internal Server Error");
+        const error = result.unwrapErr();
+
+        switch (error.kind) {
+          case "server":
+            logger.error(error.message);
+
+            return status("Internal Server Error", "Internal Server Error");
+          case "client":
+            return status("OK", error.message);
+        }
       }
 
       return status("OK", "Accepted");
@@ -120,8 +157,16 @@ export const friendsController = new Elysia()
       const result = await rejectFriendRequest(user.id, userId);
 
       if (result.isErr()) {
-        logger.error(result.unwrapErr().message);
-        return status("Internal Server Error", "Internal Server Error");
+        const error = result.unwrapErr();
+
+        switch (error.kind) {
+          case "server":
+            logger.error(error.message);
+
+            return status("Internal Server Error", "Internal Server Error");
+          case "client":
+            return status("OK", error.message);
+        }
       }
 
       return status("OK", "Rejected");
@@ -134,9 +179,16 @@ export const friendsController = new Elysia()
       const result = await unfriend(user.id, userId);
 
       if (result.isErr()) {
-        logger.error(result.unwrapErr().message);
+        const error = result.unwrapErr();
 
-        return status("Internal Server Error", "Internal Server Error");
+        switch (error.kind) {
+          case "server":
+            logger.error(error.message);
+
+            return status("Internal Server Error", "Internal Server Error");
+          case "client":
+            return status("OK", error.message);
+        }
       }
 
       return status("OK", "Unfriended");

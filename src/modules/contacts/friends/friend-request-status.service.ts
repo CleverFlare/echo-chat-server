@@ -1,6 +1,7 @@
 import { Result } from "@/utils/rust-types";
 import { removeFriendRequest, updateFriendRequestStatus } from "./repository";
 import { publish } from "@/event-bus";
+import { AppError } from "@/utils/errors";
 
 export async function deleteFriendRequest(userId: string, personId: string) {
   return removeFriendRequest(userId, personId);
@@ -9,7 +10,7 @@ export async function deleteFriendRequest(userId: string, personId: string) {
 export async function acceptFriendRequest(
   userId: string,
   personId: string,
-): Promise<Result<void, Error>> {
+): Promise<Result<void, AppError>> {
   return (await updateFriendRequestStatus(userId, personId, "accepted")).match({
     Ok: async () => {
       publish(
@@ -32,7 +33,7 @@ export async function acceptFriendRequest(
 export async function rejectFriendRequest(
   userId: string,
   personId: string,
-): Promise<Result<void, Error>> {
+): Promise<Result<void, AppError>> {
   return (await updateFriendRequestStatus(userId, personId, "rejected")).match({
     Ok: async () => {
       publish(

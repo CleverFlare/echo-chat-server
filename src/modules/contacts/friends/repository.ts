@@ -1,10 +1,11 @@
 import { InferSchema } from "@/cql/types";
 import { Option, Result } from "@/utils/rust-types";
 import { friendRequests, friendRequestsBySenderId, friends } from "../schema";
+import { AppError } from "@/utils/errors";
 
 export async function findFriendRequests(
   userId: string,
-): Promise<Result<InferSchema<typeof friendRequests>[], Error>> {
+): Promise<Result<InferSchema<typeof friendRequests>[], AppError>> {
   try {
     const requests = await friendRequests
       .select("*")
@@ -14,14 +15,14 @@ export async function findFriendRequests(
 
     return Result.Ok(requests);
   } catch (err) {
-    return Result.Err(err as Error);
+    return Result.Err(AppError.from(err as Error));
   }
 }
 
 export async function findFriendRequest(
   userId: string,
   personId: string,
-): Promise<Result<InferSchema<typeof friendRequests>, Error>> {
+): Promise<Result<InferSchema<typeof friendRequests>, AppError>> {
   try {
     const requests = await friendRequests
       .select("*")
@@ -32,13 +33,13 @@ export async function findFriendRequest(
 
     return Result.Ok(requests[0]);
   } catch (err) {
-    return Result.Err(err as Error);
+    return Result.Err(AppError.from(err as Error));
   }
 }
 
 export async function findFriendResponses(
   userId: string,
-): Promise<Result<InferSchema<typeof friendRequestsBySenderId>[], Error>> {
+): Promise<Result<InferSchema<typeof friendRequestsBySenderId>[], AppError>> {
   try {
     const responses = await friendRequestsBySenderId
       .select("*")
@@ -48,14 +49,14 @@ export async function findFriendResponses(
 
     return Result.Ok(responses);
   } catch (err) {
-    return Result.Err(err as Error);
+    return Result.Err(AppError.from(err as Error));
   }
 }
 
 export async function findFriendResponse(
   userId: string,
   personId: string,
-): Promise<Result<InferSchema<typeof friendRequestsBySenderId>, Error>> {
+): Promise<Result<InferSchema<typeof friendRequestsBySenderId>, AppError>> {
   try {
     const responses = await friendRequestsBySenderId
       .select("*")
@@ -66,13 +67,13 @@ export async function findFriendResponse(
 
     return Result.Ok(responses[0]);
   } catch (err) {
-    return Result.Err(err as Error);
+    return Result.Err(AppError.from(err as Error));
   }
 }
 
 export async function findFriends(
   userId: string,
-): Promise<Result<InferSchema<typeof friends>[], Error>> {
+): Promise<Result<InferSchema<typeof friends>[], AppError>> {
   try {
     const results = await friends
       .select("*")
@@ -82,14 +83,14 @@ export async function findFriends(
 
     return Result.Ok(results);
   } catch (err) {
-    return Result.Err(err as Error);
+    return Result.Err(AppError.from(err as Error));
   }
 }
 
 export async function findFriend(
   userId: string,
   friendId: string,
-): Promise<Result<Option<InferSchema<typeof friends>>, Error>> {
+): Promise<Result<Option<InferSchema<typeof friends>>, AppError>> {
   try {
     const results = await friends
       .select("*")
@@ -104,14 +105,14 @@ export async function findFriend(
 
     return Result.Ok(Option.Some(results[0]));
   } catch (err) {
-    return Result.Err(err as Error);
+    return Result.Err(AppError.from(err as Error));
   }
 }
 
 export async function insertFriendRequest(
   userId: string,
   personId: string,
-): Promise<Result<void, Error>> {
+): Promise<Result<void, AppError>> {
   try {
     await friendRequests
       .insert({
@@ -135,14 +136,14 @@ export async function insertFriendRequest(
 
     return Result.Ok(undefined);
   } catch (err) {
-    return Result.Err(err as Error);
+    return Result.Err(AppError.from(err as Error));
   }
 }
 
 export async function insertFriend(
   userId: string,
   friendId: string,
-): Promise<Result<void, Error>> {
+): Promise<Result<void, AppError>> {
   try {
     await friends
       .insert({
@@ -164,14 +165,14 @@ export async function insertFriend(
 
     return Result.Ok(undefined);
   } catch (err) {
-    return Result.Err(err as Error);
+    return Result.Err(AppError.from(err as Error));
   }
 }
 
 export async function removeFriend(
   userId: string,
   friendId: string,
-): Promise<Result<void, Error>> {
+): Promise<Result<void, AppError>> {
   try {
     await friends
       .delete()
@@ -189,14 +190,14 @@ export async function removeFriend(
 
     return Result.Ok(undefined);
   } catch (err) {
-    return Result.Err(err as Error);
+    return Result.Err(AppError.from(err as Error));
   }
 }
 
 export async function removeFriendRequest(
   userId: string,
   personId: string,
-): Promise<Result<void, Error>> {
+): Promise<Result<void, AppError>> {
   try {
     await friendRequests
       .delete()
@@ -214,7 +215,7 @@ export async function removeFriendRequest(
 
     return Result.Ok(undefined);
   } catch (err) {
-    return Result.Err(err as Error);
+    return Result.Err(AppError.from(err as Error));
   }
 }
 
@@ -222,7 +223,7 @@ export async function updateFriendRequestStatus(
   userId: string,
   personId: string,
   status: "pending" | "rejected" | "accepted",
-): Promise<Result<void, Error>> {
+): Promise<Result<void, AppError>> {
   try {
     await friendRequests
       .update()
@@ -242,6 +243,6 @@ export async function updateFriendRequestStatus(
 
     return Result.Ok(undefined);
   } catch (err) {
-    return Result.Err(err as Error);
+    return Result.Err(AppError.from(err as Error));
   }
 }

@@ -2,6 +2,7 @@ import { Result } from "@/utils/rust-types";
 import { findFriendRequests, findFriendResponses } from "./repository";
 import { InferSchema } from "@/cql/types";
 import { friendRequests, friendRequestsBySenderId } from "../schema";
+import { AppError } from "@/utils/errors";
 
 export async function getFriendRequests(userId: string): Promise<
   Result<
@@ -9,7 +10,7 @@ export async function getFriendRequests(userId: string): Promise<
       incoming: InferSchema<typeof friendRequests>[];
       outgoing: InferSchema<typeof friendRequestsBySenderId>[];
     },
-    Error
+    AppError
   >
 > {
   const incomingResult = await findFriendRequests(userId);
