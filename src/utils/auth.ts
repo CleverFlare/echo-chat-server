@@ -151,8 +151,6 @@ export const authMiddleware = new Elysia({ name: "better-auth" })
         const body = await req.clone().json(); // clone before reading
         const userResult = await findUserIdByPhone(body.phoneNumber);
 
-        console.log("USER", userResult.unwrap().unwrap());
-
         if (userResult.isErr() || userResult.unwrap().isNone()) {
           return status(400, { message: "Phone number is not registered." });
         }
