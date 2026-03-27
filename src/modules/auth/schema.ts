@@ -12,7 +12,7 @@ export const userByIdBuilder = db
     email: cql.scalar.text,
     phone: cql.scalar.text,
     avatar: cql.scalar.text,
-    created_at: cql.scalar.timestamp,
+    createdAt: cql.scalar.timestamp,
     bio: cql.scalar.text,
   })
   .primaryKey("id");
@@ -30,7 +30,7 @@ export const userByPhoneBuilder = db
     email: cql.scalar.text,
     phone: cql.scalar.text,
     avatar: cql.scalar.text,
-    created_at: cql.scalar.timestamp,
+    createdAt: cql.scalar.timestamp,
     bio: cql.scalar.text,
   })
   .primaryKey("phone");
@@ -48,7 +48,7 @@ export const userByEmailBuilder = db
     email: cql.scalar.text,
     phone: cql.scalar.text,
     avatar: cql.scalar.text,
-    created_at: cql.scalar.timestamp,
+    createdAt: cql.scalar.timestamp,
     bio: cql.scalar.text,
   })
   .primaryKey("email");
@@ -66,7 +66,7 @@ export const userByHandleBuilder = db
     email: cql.scalar.text,
     phone: cql.scalar.text,
     avatar: cql.scalar.text,
-    created_at: cql.scalar.timestamp,
+    createdAt: cql.scalar.timestamp,
     bio: cql.scalar.text,
   })
   .primaryKey("handle");

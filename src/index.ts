@@ -12,6 +12,8 @@ async function main() {
     .get("/", "Hello, World!")
     .listen(3000);
 
+  console.log(new Date());
+
   logger.log(
     cols.cyan(
       `🦊 Elysia is running at ${cols.underline(cols.blue(`${app.server?.protocol}://${app.server?.hostname}:${app.server?.port}`))}`,

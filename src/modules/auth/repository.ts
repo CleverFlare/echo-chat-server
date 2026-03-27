@@ -72,12 +72,12 @@ export async function findUserIdByEmail(
 }
 
 export async function findUserIdByPhone(
-  email: string,
+  phone: string,
 ): Promise<Result<Option<InferSchema<typeof userByPhone>>, AppError>> {
   try {
     const results = await userByPhone
       .select("*")
-      .where("phone", "=", email)
+      .where("phone", "=", phone)
       .build()
       .execute();
 
