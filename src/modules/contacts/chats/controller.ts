@@ -1,9 +1,9 @@
-import { authMiddleware } from "@/utils/auth";
+import { authMacro } from "@/utils/auth";
 import Elysia from "elysia";
 import { getChatsByUserId } from "./chats.service";
 import logger from "@/utils/logger";
 
-export const chatsController = new Elysia().use(authMiddleware).get(
+export const chatsController = new Elysia().use(authMacro).get(
   "/chats",
   async ({ user, status }) => {
     const chats = await getChatsByUserId(user.id);

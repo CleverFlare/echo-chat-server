@@ -1,4 +1,4 @@
-import { authMiddleware } from "@/utils/auth";
+import { authMacro } from "@/utils/auth";
 import Elysia from "elysia";
 import z from "zod/v4";
 import { sendFriendRequest } from "./send-friend-request.service";
@@ -14,7 +14,7 @@ import {
 import { unfriend } from "./unfriend.service";
 
 export const friendsController = new Elysia()
-  .use(authMiddleware)
+  .use(authMacro)
   .get(
     "/friends",
     async ({ user, status }) => {

@@ -1,11 +1,11 @@
-import { authMiddleware } from "@/utils/auth";
+import { authMacro } from "@/utils/auth";
 import Elysia from "elysia";
 import { blockPerson } from "./block.service";
 import logger from "@/utils/logger";
 import { getBlocks } from "./get-blocks.service";
 
 export const chatsController = new Elysia()
-  .use(authMiddleware)
+  .use(authMacro)
   .get(
     "/blocks",
     async ({ user, status }) => {

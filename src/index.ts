@@ -1,18 +1,15 @@
 import { Elysia } from "elysia";
 import { cols } from "@monitext/nprint";
-import { authMiddleware } from "./utils/auth";
+import { authHandler } from "./utils/auth";
 import { db } from "./utils/database";
 import logger from "./utils/logger";
+
+export const app = new Elysia().use(authHandler).get("/", "Hello, World!");
 
 async function main() {
   await db.connect();
 
-  const app = new Elysia()
-    .use(authMiddleware)
-    .get("/", "Hello, World!")
-    .listen(3000);
-
-  console.log(new Date());
+  app.listen(3000);
 
   logger.log(
     cols.cyan(

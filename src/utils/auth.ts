@@ -139,52 +139,71 @@ const auth = betterAuth({
   trustedOrigins: [process.env.CLIENT_ORIGIN],
 });
 
-// user middleware (compute user and session and pass to routes)
-export const authMiddleware = new Elysia({ name: "better-auth" })
-  .onBeforeHandle({ as: "global" }, async ({ request: req, status }) => {
-    const url = new URL(req.url);
+// 1. Logic & Mount
+export const authHandler = new Elysia({ name: "auth-handler" }).group(
+  "/api/auth",
+  (group) =>
+    group
+      .onBeforeHandle(async ({ request: req, status, body }) => {
+        const url = new URL(req.url);
 
-    if (url.pathname === "/api/auth/phone-number/send-otp") {
-      const existOnly = req.headers.get("x-exist-only");
+        // We use 'body' here. Elysia has already parsed it.
+        // The trick is making sure the final handler gets a fresh version.
 
-      if (existOnly === "true") {
-        const body = await req.clone().json(); // clone before reading
-        const userResult = await findUserIdByPhone(body.phoneNumber);
+        if (url.pathname.endsWith("/phone-number/send-otp")) {
+          const existOnly = req.headers.get("x-exist-only");
+          if (existOnly === "true") {
+            const data = body as any;
+            const userResult = await findUserIdByPhone(data.phoneNumber);
 
-        if (userResult.isErr() || userResult.unwrap().isNone()) {
-          return status(400, { message: "Phone number is not registered." });
+            if (userResult.isErr() || userResult.unwrap().isNone()) {
+              return status(400, {
+                message: "Phone number is not registered.",
+              });
+            }
+          }
         }
-      }
-    }
 
-    if (url.pathname === "/api/auth/email-otp/send-verification-otp") {
-      const body = await req.clone().json();
+        if (url.pathname.endsWith("/email-otp/send-verification-otp")) {
+          const data = body as any;
+          if (data?.type !== "sign-in") return;
 
-      if (body.type !== "sign-in") return;
+          const userResult = await findUserIdByEmail(data.email);
+          if (userResult.isErr() || userResult.unwrap().isNone()) {
+            return status(400, { message: "Email is not registered." });
+          }
+        }
+      })
+      /**
+       * FIX: Use a fresh request for Better Auth.
+       * Better-Auth's handler needs to read the body stream.
+       * Since Elysia already read it to give us the 'body' object above,
+       * we pass the data back into a new Request if it's a POST/PUT.
+       */
+      .all("/*", async ({ request, body }) => {
+        if (request.method !== "GET" && request.method !== "HEAD" && body) {
+          // Reconstruct the request so the body stream is "fresh" for Better-Auth
+          return auth.handler(
+            new Request(request.url, {
+              method: request.method,
+              headers: request.headers,
+              body: JSON.stringify(body),
+            }),
+          );
+        }
+        return auth.handler(request);
+      }),
+);
 
-      const userResult = await findUserIdByEmail(body.email);
-
-      if (userResult.isErr() || userResult.unwrap().isNone()) {
-        return status(400, { message: "Email is not registered." });
-      }
-    }
-  })
-  .mount(auth.handler)
-  .macro({
-    auth: {
-      async resolve({ status, request: { headers } }) {
-        const session = await auth.api.getSession({
-          headers,
-        });
-
-        if (!session) return status(401);
-
-        return {
-          user: session.user,
-          session: session.session,
-        };
-      },
+// 2. Macro (Used for route protection)
+export const authMacro = new Elysia({ name: "auth-macro" }).macro({
+  auth: {
+    async resolve({ status, request }) {
+      const session = await auth.api.getSession({ headers: request.headers });
+      if (!session) return status(401, "Unauthorized");
+      return { user: session.user, session: session.session };
     },
-  });
+  },
+});
 
 export default auth;
